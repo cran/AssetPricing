@@ -1,0 +1,98 @@
+head	1.3;
+access;
+symbols;
+locks
+	rolf:1.3; strict;
+comment	@# @;
+
+
+1.3
+date	2012.01.31.07.33.02;	author rolf;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2012.01.31.07.01.52;	author rolf;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2012.01.25.02.04.16;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Function to determine the "turning points" (candidates for
+maxima) of the conditional expected value (conditional upon
+there being an arrival at time "t") of stock of goods.
+@
+
+
+1.3
+log
+@Dropped a spurious line consisting "   ply".
+@
+text
+@turnPts <- function(a,b,v,Kpa,xlo,xhi) {
+#
+# Construct the polynomial.
+    q <- length(v)
+    jmax  <- suppressWarnings(max(which(Kpa > 0)))
+    if(jmax < 1) return(as.polynomial(0))
+    Kpa <- Kpa[1:jmax]
+    vq <- v[q]
+    ply <- 0
+    for(j in 1:jmax) {
+        vqmj <- if(j < q) v[q-j] else 0
+        p1   <- polynomial(c(vqmj-vq,j))
+        p2   <- polynomial(c(a,b))
+        ply  <- ply + Kpa[j]*p1*p2^j
+    }
+#
+# Take its derivative.
+    dply <- deriv(as.polylist(ply))[[1]]
+#
+# Find the zeroes.
+    zzz  <- polyroot(dply)
+    rrr  <- sapply(zzz,function(z){isTRUE(all.equal(Im(z),0))})
+    if(!any(rrr)) return(numeric(0))
+    zzz  <- Re(zzz[rrr])
+#
+# Return those zeroes that lie in the interval [xlo,xhi]
+    ok   <- xlo <= zzz & zzz <= xhi
+    zzz[ok]
+}
+@
+
+
+1.2
+log
+@Changed "kappa" to "Kpa"; guarded against there being *n*
+turning points found.
+@
+text
+@a15 1
+    ply
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 1
+turnPts <- function(a,b,v,kappa,xlo,xhi) {
+d5 1
+a5 1
+    jmax  <- suppressWarnings(max(which(kappa > 0)))
+d7 1
+a7 1
+    kappa <- kappa[1:jmax]
+d14 1
+a14 1
+        ply  <- ply + kappa[j]*p1*p2^j
+d24 1
+@

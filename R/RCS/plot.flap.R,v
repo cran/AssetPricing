@@ -1,0 +1,618 @@
+head	1.3;
+access;
+symbols;
+locks
+	rolf:1.3; strict;
+comment	@# @;
+
+
+1.3
+date	2012.11.06.21.13.37;	author rolf;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2012.10.21.22.43.08;	author rolf;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2012.10.20.03.34.30;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Renaming of plot.funlist.R.
+@
+
+
+1.3
+log
+@Many, many changes!!!
+@
+text
+@plot.flap <- function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
+                      xlab=NULL,ylab=NULL,main=NULL,main.panel=NULL,
+                      groups=NULL,add=FALSE,aao=TRUE,gloss=FALSE,glind=NULL,
+                      extend=0.3,col.gloss=1,cex.gloss=0.8,mfrow=NULL,...) {
+#
+# Argument ``aao'' means ``all at once''.
+#
+    if(add & !aao) stop(paste("If \"all at once\" is FALSE you",
+                              "cannot add to an existing plot.\n"))
+    qmax <- attr(x,"qmax")
+    jmax <- attr(x,"jmax")
+    if(is.null(jmax)) jmax <- 1
+
+# If groups is NULL, build it --- with the groups column
+# running from 1 to length(x).  Otherwise make sure its entries
+# are sensible.
+    if(is.null(groups)) {
+        groups <- cbind(group=1:length(x),as.data.frame(i2qj(1:length(x),qmax,jmax)))
+    } else {
+         if(!is.data.frame(groups) || !ncol(groups)%in%(2:3))
+             stop("Argument \"groups\" must be a data frame with 2 or 3 columns.\n")
+         if(!all(names(groups)%in%c("group","q","j")))
+             stop("Names of \"groups\" argument are not right.\n")
+         if(ncol(groups)==2) {
+             if(!isTRUE(all.equal(sort(names(groups)),c("group","q"))))
+                 stop("Names of 2-column \"groups\" should be \"group\" and \"q\".\n")
+             if(jmax > 1) stop(paste("Column \"j\" of \"groups\" must be specified\n",
+                                     "when \"jmax\" is greater than 1.\n"))
+             groups$j <- 1
+         }
+   }
+      
+# If jmax is 1 make sure that all j-entries of "groups" are equal to 1.
+    if(jmax==1 & !all(groups$j == 1))
+        stop(paste("Not all of the entries of \"groups$j\" are\n",
+                   "equal to 1, but \"jmax\" is 1.\n"))
+
+# Make sure all entries of "groups" are in the right range.
+    if(any(groups$q != round(groups$q)) | any(groups$j != round(groups$j))
+        | any(groups$q <= 0) | any(groups$j <= 0))
+            stop(paste("Entries of \"groups$q\" and \"groups$j\"\n",
+                       "must be postive integers.\n"))
+    if(any(groups$q > qmax) | any(groups$j > pmin(jmax,groups$q)))
+        stop(paste("Some entries of the \"q\" or \"j\" columns\n",
+                   "of \"groups\" are out of range.\n"))
+    ng <- length(unique(groups$group))
+
+# Check on whether "gloss" should be done, and if so, should it be made
+# (or is it given).
+    do.gloss   <- if(is.logical(gloss)) gloss[1] else TRUE
+    make.gloss <- do.gloss && is.logical(gloss)
+
+# Make sure "gloss" and "glind", if given, are lists of vectors
+# whose lengths match up appropriately with the groups in "groups".
+    if(do.gloss) {
+        if(is.null(glind)) { # Add gloss for all traces.
+    	    glind <- rep(TRUE,nrow(groups))
+        } else {
+            if(length(glind) != nrow(groups))
+                stop("Mismatch in length of \"glind\" and nrow of \"groups\".\n")
+            if(!is.logical(glind))
+                stop("Argument \"glind\" must be a logical vector.\n")
+        }
+    }
+    if(make.gloss) {
+       gloss <- if(jmax==1) {
+          paste("q =",groups$q)
+       } else {
+          paste("q =",groups$q,"j = ",groups$j)
+       }
+    } else if(do.gloss) {
+        if(length(gloss) != nrow(groups))
+            stop("Mismatch in length of \"gloss\" and nrow of \"groups\".\n")
+        ok <- sapply(1:ng,function(k,groups,gloss){
+                              length(gloss[[k]]) == length(groups[[k]]$q)},
+                          groups=groups,gloss=gloss)
+    }
+
+# Blank out those entries of "gloss" where the values
+# of "glind" are FALSE.
+    if(do.gloss) gloss[!glind] <- ""
+
+# Set up multiway array of plots.
+    if(!add) {
+        if(is.null(mfrow)) {
+            if(ng==1|aao) mfrow <- c(1,1)
+            else if(2 <= ng & ng <= 4) mfrow <- c(2,2)
+            else mfrow <- c(3,2)
+        }
+        np <- prod(mfrow)
+        oma <- if(!(aao | is.null(main))) c(0,0,2,0) else rep(0,4)
+        opar <- par(mfrow=mfrow, oma=oma)
+        on.exit(par(opar))
+
+# Set up xlab, ylab, main, main.panel and ylim, 
+        if(is.null(xlab)) xlab <- ""
+        if(is.null(ylab)) ylab <- ""
+        if(is.null(main)) main <- ""
+        if(!aao) {
+            if(is.null(main.panel)) {
+                main.panel <- paste("group",1:ng)
+            } else if(length(main.panel) == 1) {
+                main.panel <- rep(main.panel,ng)
+            } else if(length(main.panel) != ng) {
+	        stop("Mismatch in lengths of \"main.panel\" and \"groups\".\n")
+            }
+        }
+        if(is.null(ylim)) ylim <- attr(x,'ylim')
+        if(is.null(ylim))
+            stop(paste("Argument ylim is missing and x has no",
+                                   "ylim attribute.\n"))
+    }
+
+# Set up xlim.  Needed even, if add is FALSE, since we're using
+# plot.function/plot.stepfun.
+        if(is.null(xlim)) xlim <- attr(x,'tlim')
+        if(is.null(xlim))
+            stop(paste("Argument xlim is missing and x has no",
+                           "\"tlim\" attribute.\n"))
+        xlime <- xlim
+        if(do.gloss) {
+            if(extend < 0 | extend > 1)
+                stop(paste("Crazy value",extend,"for \"extend\".\n"))
+            xlime[2] <- xlime[2] + extend*diff(xlime)
+        }
+
+# Set up line types and colours.
+    if(is.null(lty)) lty <- 1
+    if(is.null(cols)) cols <- 1
+    if(length(lty)==1) lty <- rep(lty,length.out=nrow(groups))
+    if(length(cols)==1) cols <- rep(cols,length.out=nrow(groups))
+
+# A couple of auxiliary constructs ...
+    startPlot <- function(xlim,xlime,ylim,xlab,ylab,main) {
+        plot(0,0,type="n",xlim=xlime,ylim=ylim,
+             xlab=xlab,ylab=ylab,main=main,axes=FALSE)
+        axis(side=2)
+        axis(side=1,at=pretty(xlim))
+    }
+    if(do.gloss) x0 <- xlim[2] + 0.05*diff(xlim)
+    stride <- inherits(x,"pwc.flap")
+
+# Are you ready boots? Start plotting!
+    if(aao & !add) {
+            startPlot(xlim=xlim,xlime=xlime,ylim=ylim,
+                      xlab=xlab,ylab=ylab,main=main)
+    }
+    for(kg in 1:ng) {
+        if(!aao) {
+            startPlot(xlim=xlim,xlime=xlime,ylim=ylim,
+                      xlab=xlab,ylab=ylab,main=main.panel[kg])
+        }
+        ikg <- groups$group==kg
+        qkg <- groups$q[ikg]
+        jkg <- groups$j[ikg]
+        lkg <- lty[ikg]
+        ckg <- cols[ikg]
+        K  <- length(qkg)
+        for(k in 1:K) {
+            i <- qj2i(qkg[k],jkg[k],qmax)
+            if(stride) {
+                plot(x[[i]], xlim=xlim,lty=lkg[k], col=ckg[k], add=TRUE,
+                     do.points=FALSE, ...)
+            } else {
+                plot(x[[i]], xlim=xlim,lty=lkg[k], col=ckg[k], add=TRUE,...)
+            }
+# Marginal gloss.
+            if(do.gloss) {
+                lbl <- gloss[ikg][k]
+                xi  <- x[[i]](xlim[2])
+                text(x0,xi,labels=lbl,adj=0,cex=cex.gloss,col=col.gloss)
+            }
+        }
+        if(!add && (kg %% np == 0 | kg == ng))
+            mtext(outer=TRUE,side=3,line=0,text=main,cex=1.2,font=2)
+        if(!aao & dev.interactive() && (kg < ng & kg%%np == 0)) readline('Go? ')
+    }
+    invisible()
+}
+@
+
+
+1.2
+log
+@Working revision.
+@
+text
+@d1 4
+a4 9
+plot.flap <- local({
+# Function dipPlot() and sipPlot() are in the environment of
+# plot.flap().
+# =========================================================================
+# Code for dipPlot().
+dipPlot <- function(x, xlim=NULL, ylim=NULL, lty=NULL, cols=NULL,
+                    xlab=NULL, ylab=NULL, main=NULL, qind=NULL, jind=NULL,
+                    add=FALSE, aao=TRUE, gloss=NULL, glind=NULL,
+                    extend=0.3, col.gloss=1, mfrow=NULL, ...) {
+d6 1
+a6 5
+# Note that we use "qind" and "jind" to specify indices; the
+# "indices" argument is not present.
+# The argument "qind" is a vector of indices between 1 and qmax;
+# the argument "jind" is a list of vectors of indices; each
+# entry of jind[[k]] must be <= qind[k] and also must be <= jmax.
+d8 2
+a9 2
+# Check that "qind" and "jind" arguments if given are sensible,
+# and if they are not given supply the defaults.
+a10 6
+    if(is.null(qind)) {
+        qind <- 1:qmax
+    } else if(!all(qind %in% 1:qmax)) {
+        stop("At least one \"qind\" value out of range.\n")
+    }
+    nq <- length(qind)
+d12 40
+a51 10
+    if(is.null(jind)) jind <- 1 # Take all "jind" values to be 1.
+    if(length(jind) == 1) jind <- rep(jind,length(qind))
+    if(length(jind) != length(qind))
+        stop("Mismatch in lengths of \"qind\" and \"jind\".\n")
+    ok <- sapply(1:nq,function(k,qind,jind,jmax){
+                          all(jind[[k]] <= min(jmax,qind[k]))},
+                 qind=qind,jind=jind,jmax=jmax)
+    if(!all(ok))
+        stop("At least one \"jind\" value out of range.\n")
+    nt <- sum(sapply(jind,length))
+d53 2
+a54 2
+# Check on "gloss" and "glind".
+    do.gloss <- if(is.null(gloss)) FALSE else if(is.logical(gloss)) gloss[1] else TRUE
+d56 2
+a57 4
+        if(is.logical(gloss)) {
+            gloss <- lapply(1:nq,function(k,qind,jind){paste(qind[k],jind[[k]])
+                                         },qind=qind,jind=jind)
+            gloss.made <- TRUE
+d59 4
+a62 2
+            gloss.made <- FALSE
+	    
+d65 5
+a69 19
+# Make sure "gloss" and "glind", if given, are lists with indices
+# in groups matching up appropriately with the groups in "jind".
+    if(do.gloss) {
+        if(!gloss.made) {
+            gloss <- as.list(gloss)
+            if(length(gloss) != nq)
+                stop("Mismatch in lengths of \"gloss\" and qind.\n")
+        }
+        if(is.null(glind)) {
+            glind <- jind
+        } else {
+            glind <- as.list(glind)
+            if(length(glind) != length(gloss))
+            stop("Mismatch in lengths of \"gloss\" \"glind\".\n")
+            ok <- sapply(1:nq,function(k,glind,jind){
+                                        all(glind[[k]]%in%jind[[k]])},
+                                        glind=glind,jind=jind)
+            if(!all(ok)) stop(paste("At least one \"glind\" value not in the\n",
+                                    "set of corresponding \"jind\" values.\n"))
+d71 6
+a76 5
+       ok <- sapply(1:nq,function(k,gloss,glind){
+                             length(gloss[[k]])==length(glind[[k]])},
+                             gloss=gloss,glind=glind)
+       if(!all(ok))
+            stop("Mismatch in lengths of entries of \"gloss\" and \"glind\".\n")
+d79 5
+d86 2
+a87 2
+            if(nq==1|aao) mfrow <- c(1,1)
+            else if(2 <= nq & nq <= 4) mfrow <- c(2,2)
+d91 2
+a92 1
+        opar <- par(mfrow=mfrow)
+d94 2
+d98 10
+d113 6
+a118 5
+# Need xlim (since we're using plot.function/plot.stepfun) even
+# if add is FALSE.
+    if(is.null(xlim)) xlim <- attr(x,'tlim')
+    if(is.null(xlim))
+        stop(paste("Argument xlim is missing and x has no",
+d120 6
+d127 1
+d130 2
+a131 24
+    if(is.atomic(lty)) {
+        lty <- lapply(1:nq,function(k,jind){
+                               rep(lty,length.out=length(jind[[k]]))},jind=jind)
+    } else {
+        ok <- sapply(1:nq,function(k,lty,jind){length(lty[[k]]) == length(jind[[k]])},
+                     lty=lty,jind=jind)
+        if(!all(ok))
+            stop("Mismatch in lengths of components of \"lty\" and \"jind\".\n")
+    }
+    if(is.atomic(cols)) {
+        cols <- lapply(1:nq,function(k,jind){
+                               rep(cols,length.out=length(jind[[k]]))},jind=jind)
+    } else {
+        ok <- sapply(1:nq,function(k,cols,jind){length(cols[[k]]) == length(jind[[k]])},
+                     cols=cols,jind=jind)
+        if(!all(ok))
+            stop("Mismatch in lengths of components of \"cols\" and \"jind\".\n")
+    }
+    xlime <- xlim
+    if(do.gloss) {
+        if(extend < 0 | extend > 1)
+            stop(paste("Crazy value",extend,"for \"extend\".\n"))
+        xlime[2] <- xlime[2] + extend*diff(xlime)
+    }
+d133 2
+a134 2
+    if(aao & !add) {
+        if(is.null(main)) main <- ""
+d136 1
+a136 1
+                        xlab=xlab,ylab=ylab,main=main,axes=FALSE)
+d140 2
+a141 95
+    if(aao) {
+        for(k in 1:nq) {
+            q <- qind[k]
+            for(j in jind[[k]]) {
+                i <- qj2i(q,j,qmax)
+                plot(x[[i]],xlim=xlim,lty=lty[[k]][j],
+                                  col=cols[[k]][j], add=TRUE,...)
+            }
+        }
+# Marginal gloss.
+        if(do.gloss) {
+            x0 <- xlim[2] + 0.05*diff(xlim)
+            for(k in 1:nq) {
+                q <- qind[k]
+                for(j in jind[[k]]) {
+                    i <- qj2i(q,j,qmax)
+                    lbl <- gloss[[k]][j]
+                    xi  <- x[[i]](xlim[2])
+                    text(x0,xi,labels=lbl,adj=0,cex=0.8,
+                                           col=col.gloss)
+                }
+            }
+        }
+    } else {
+        kount <- 0
+        for(k in 1:nq) {
+            q <- qind[k]
+            dildo <- if(is.null(main)) paste("q =",q) else main
+            plot(0,0,type="n",xlim=xlim,ylim=ylim,
+                        xlab=xlab,ylab=ylab,main=dildo)
+            for(j in jind[[k]]) {
+                i <- qj2i(q,j,qmax)
+                plot(x[[i]],lty=lty[[k]][j],col=cols[[k]][j],xlim=xlim,add=TRUE)
+            }
+            kount <- kount+1
+            if(dev.interactive() & kount < nq & kount%%np == 0) {
+               readline('Go? ')
+            }
+        }
+    }
+    invisible()
+}
+# =========================================================================
+#
+# =========================================================================
+# Code for sipPlot().
+sipPlot <- function(x, xlim=NULL, ylim=NULL, lty=NULL, cols=NULL,
+                    xlab=NULL, ylab=NULL, main=NULL, indices=1:length(x),
+                    add=FALSE, aao=TRUE, gloss=NULL, glind=NULL,
+                    extend=0.3,col.gloss=1, mfrow=NULL,...) {
+    y <- x[indices]
+    nind <- length(indices)
+    if(!add) {
+        if(is.null(mfrow)) {
+            if(nind==1|aao) mfrow <- c(1,1)
+            else if(2 <= nind & nind <= 4) mfrow <- c(2,2)
+            else mfrow <- c(3,2)
+        }
+        np <- prod(mfrow)
+        opar <- par(mfrow=mfrow)
+        on.exit(par(opar))
+        if(missing(xlab)) xlab <- ""
+        if(missing(ylab)) ylab <- ""
+        if(is.null(ylim)) ylim <- attr(x,'ylim')
+        if(is.null(ylim))
+            stop(paste("Argument ylim is missing and x has no",
+                                   "ylim attribute.\n"))
+    }
+# Need xlim (since we're using plot.function/plot.stepfunction) even
+# if add is FALSE.
+    if(is.null(xlim)) xlim <- attr(x,'tlim')
+    if(is.null(xlim))
+        stop(paste("Argument xlim is missing and x has no",
+                           "xlim attribute.\n"))
+
+    if(is.null(lty)) lty <- 1
+    if(is.null(cols)) cols <- 1
+    lty <- rep(lty,length.out=nind)
+    cols <- rep(cols,length.out=nind)
+
+    do.gloss <- if(is.null(gloss)) FALSE
+            else if(is.logical(gloss)) gloss[1]
+                else TRUE
+    if(do.gloss) {
+        if(is.null(glind)) glind <- indices
+        else if(!all(glind %in% indices))
+            stop(paste("Argument \"glind\"",
+                       "must be a subset of indices.\n"))
+        if(is.logical(gloss)) gloss <- format(glind)
+        else {
+            if(length(gloss) != length(glind))
+                stop(paste("Lengths of \"gloss\"",
+                                           "and \"glind\" don't match.\n"))
+        }
+    }
+d143 1
+d145 2
+a146 7
+        xlime <- xlim
+        if(do.gloss) xlime[2] <- xlime[2] + 0.3*diff(xlime)
+        if(is.null(main)) main <- ""
+        plot(0,0,type="n",xlim=xlime,ylim=ylim,
+                        xlab=xlab,ylab=ylab,main=main,axes=FALSE)
+        axis(side=2)
+        axis(side=1,at=pretty(xlim))
+d148 19
+a166 5
+    if(aao) {
+        for(j in 1:nind) {
+            plot(y[[j]],xlim=xlim,lty=lty[j],
+                                  col=cols[j], add=TRUE,...)
+        }
+d168 4
+a171 18
+        if(do.gloss) {
+            x0 <- xlim[2] + 0.05*diff(xlim)
+            for(i in 1:length(glind)) {
+                lbl <- gloss[i]
+                j   <- glind[i]
+                yj  <- x[[j]](xlim[2])
+                text(x0,yj,labels=lbl,adj=0,cex=0.8,
+                                     col=col.gloss)
+            }
+        }
+    } else {
+        for(i in 1:nind) {
+            dildo <- if(is.null(main)) paste(indices[i]) else main
+            j <- indices[i]
+            plot(y[[j]],lty=lty[i],col=cols[i],xlim=xlim,
+                                  ylim=ylim,xlab=xlab,ylab=ylab,main=dildo,...)
+            if(dev.interactive() & i < nind & i%%np == 0) {
+                readline('Go? ')
+d174 3
+a179 35
+# =========================================================================
+#
+# =========================================================================
+# The code for the actual plot.flap() function.
+function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
+         xlab=NULL,ylab=NULL,main=NULL,indices=1:length(x),
+         qind=NULL,jind=NULL,
+         add=FALSE,aao=TRUE,gloss=NULL,glind=NULL,extend=0.3,
+         col.gloss=1,mfrow=NULL,...) {
+#
+# Argument ``aao'' means ``all at once''.
+#
+    if(add & !aao) stop(paste("If \"all at once\" is FALSE you",
+                              "cannot add to an existing plot.\n"))
+
+type <- if(inherits(x,"di.flap")) "dip" else "sip"
+if(type=="sip" & !is.null(qind)) {
+    stop(paste("Argument \"qind\" makes no sense",
+               "unless double indexing is being used.\n"))
+}
+
+if(type=="dip") {
+    dipPlot(x, xlim=xlim, ylim=ylim, lty=lty, cols=cols, xlab=xlab,
+    ylab=ylab, main=main, qind=qind, jind=jind,
+    add=add, aao=aao, gloss=gloss, glind=glind, extend=extend,
+    col.gloss=col.gloss, mfrow=mfrow, ...)
+} else {
+    sipPlot(x, xlim=xlim, ylim=ylim, lty=lty, cols=cols, xlab=xlab,
+    ylab=ylab, main=main, indices=indices,
+    add=add, aao=aao, gloss=gloss, glind=glind, extend=extend,
+    col.gloss=col.gloss, mfrow=mfrow, ...)
+}
+}
+# =========================================================================
+})
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d31 1
+a31 1
+    ok <- sapply(1:nq,function(k,qind,jind,kmax){
+d86 2
+a87 2
+        if(missing(xlab)) xlab <- ""
+        if(missing(ylab)) ylab <- ""
+d103 2
+a104 1
+        lty <- rep(lty,length.out=nt)
+a109 1
+        lty <- unlist(lty)
+d112 2
+a113 1
+        cols <- rep(cols,length.out=nt)
+a118 1
+        cols <- unlist(cols)
+d135 6
+a140 5
+        for(q in 1:nq) {
+            for(j in jind[[q]]) {
+                i <- qj2i(q,j,qmax,jmax)
+                plot(y[[i]],xlim=xlim,lty=lty[i],
+                                  col=cols[i], add=TRUE,...)
+d146 7
+a152 6
+            for(q in 1:nq) {
+                for(j in jind[[q]]) {
+                    i <- qj2i(q,j,qmax,jmax)
+                    lbl <- gloss[[q]][j]
+                    yi  <- x[[i]](xlim[2])
+                    text(x0,yi,labels=lbl,adj=0,cex=0.8,
+d158 13
+a170 9
+        for(q in 1:nq) {
+            for(j in jind[[q]]) {
+                i <- qj2i(q,j,qmax,jmax)
+                dildo <- if(is.null(main)) paste("q =",q,"j =",j) else main
+                plot(y[[i]],lty=lty[i],col=cols[i],xlim=xlim,
+                                  ylim=ylim,xlab=xlab,ylab=ylab,main=dildo,...)
+                if(dev.interactive() & j < nq & j%%np == 0) {
+                    readline('Go? ')
+                }
+d183 1
+a183 1
+                    col.gloss=1, mfrow=NULL,...) {
+d204 1
+a204 1
+    if(is.null(xlim)) xlim <- attr(x,'xlim')
+d218 2
+a219 3
+        gn <- seq(along=indices)
+        if(is.null(glind)) glind <- gn
+        else if(!all(glind %in% gn))
+d221 2
+a222 3
+                       "must be a subset of",
+                                   "1:length(indices).\n"))
+        if(is.logical(gloss)) gloss <- format(indices[glind])
+a227 1
+        gn <- seq(along=glind)
+d247 1
+a247 1
+            for(i in gn) {
+d249 1
+a249 1
+                j   <- indices[glind[i]]
+d256 4
+a259 3
+        for(j in 1:nind) {
+            dildo <- if(is.null(main)) paste(indices[j]) else main
+            plot(y[[j]],lty=lty[j],col=cols[j],xlim=xlim,
+d261 1
+a261 1
+            if(dev.interactive() & j < nind & j%%np == 0) {
+d290 2
+a291 2
+    dipPlot(x, xlim=xlim, ylim=xlim, lty=xlim, cols=cols, xlab=xlab,
+    ylab=ylab, main=main, qind=qind, jind=qind,
+d295 1
+a295 1
+    sipPlot(x, xlim=xlim, ylim=xlim, lty=xlim, cols=cols, xlab=xlab,
+@

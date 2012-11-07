@@ -1,0 +1,50 @@
+head	1.2;
+access;
+symbols;
+locks
+	rolf:1.2; strict;
+comment	@# @;
+
+
+1.2
+date	2009.09.19.22.09.31;	author rolf;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2009.09.19.02.09.44;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Put together probability and derivatives matrices from
+a list output by lapply.
+@
+
+
+1.2
+log
+@Put in the necessary clipping to the upper triangle that
+I had previously omitted.
+@
+text
+@pander <- local(function(zzz,qmax,cname) {
+# Probability and derivatives.
+	m <- lapply(zzz,function(z,nm){z[[nm]]},nm=cname)
+	m <- unlist(m)
+	m <- matrix(m,qmax,qmax)
+	m[upper.tri(m)] <- 0
+	const <- 0+(cname=="P")
+	cbind(const - apply(m,1,sum),m)
+})
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d6 1
+@

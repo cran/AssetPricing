@@ -1,0 +1,183 @@
+head	1.6;
+access;
+symbols;
+locks
+	rolf:1.6; strict;
+comment	@# @;
+
+
+1.6
+date	2012.11.06.21.22.16;	author rolf;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2012.10.21.23.05.31;	author rolf;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2012.01.31.08.01.02;	author rolf;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2012.01.31.07.07.41;	author rolf;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2012.01.25.01.56.37;	author rolf;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2012.01.09.00.37.41;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Boss function to do the solving for the optimal pricing
+policy by calling upon the appropriate function from the
+list: xsolve.cont(), xsolve.disc(), and xsolve.pwl().
+@
+
+
+1.6
+log
+@New argument maxFac; lambda now allowed to be a scalar;
+@
+text
+@xsolve <- function(S,lambda,gprob=1,tmax=NULL,qmax,prices=NULL,nstep,type="sip",
+                   alpha=NULL,salval=0,maxFac=1000,nverb=0) {
+#
+# Dispatch the problem to one of xsolve.cont(), xsolve.disc(),
+# xsolve.pwl(), depending on the nature of the price sensitivity
+# function "S".
+#
+    soltype <- findSolType(S,prices)
+
+    if(is.numeric(lambda)) {
+        if(length(lambda) != 1 || lambda <=0)
+            stop("When \"lambda\" is numeric it must be a positive scalar.\n")
+        lambda <- with(list(lambda=lambda),function(t){rep(lambda,length(t))})
+    }
+
+    switch(EXPR = soltype,
+	cont = xsolve.cont(S,lambda,gprob,tmax,qmax,nstep,type,
+                           alpha,salval,nverb),
+	disc = xsolve.disc(S,lambda,gprob,tmax,qmax,prices,nstep,type,
+                           alpha,salval,maxFac,nverb),
+	pwl  = xsolve.pwl(S,lambda,gprob,tmax,qmax,nstep,type,
+                           alpha,salval,maxFac,nverb)
+    )
+}
+@
+
+
+1.5
+log
+@Made default value of gprob equal to 1.
+@
+text
+@d1 2
+a2 2
+xsolve <- function(S,lambda,gprob=1,tmax,qmax,prices=NULL,nstep,type="sip",
+                   alpha=NULL,salval=0,nverb=0) {
+d8 7
+a14 1
+    soltype <- checkPSF(S,prices)
+d20 3
+a22 3
+                           alpha,salval,nverb),
+	pwl  = xsolve.pwl(S,lambda,gprob,qmax,nstep,type,
+                           alpha,salval,nverb)
+@
+
+
+1.4
+log
+@Changed "verb" (logical) to "nverb" (integer).
+@
+text
+@d1 9
+a9 14
+xsolve <- function (type, tmax, nstep, qmax, lambda, S, alpha, gprob,
+                    prices = NULL, salval = 0, nverb=0) {
+# types of optimal price solver: xsolve.disc, xsolve.pwl, xsolve.cont.
+# Note: in the "pwl" (piecewise linear) setting the argument "S"
+# must be a (single) function.
+        if(!is.null(prices)) {
+		soltype <- "disc"
+	} else if(is.function(S)) {
+		E <- environment(S)
+		if(!any(c(is.null(E$alpha),is.null(E$beta),
+                          is.null(E$kn),is.null(E$tmax)))) soltype <- "pwl"
+	} else {
+		soltype <- "cont"
+    	}
+d11 6
+a16 6
+        disc = xsolve.disc(type, tmax, nstep, qmax, lambda, S,
+                           alpha, gprob, prices, salval, nverb),
+        pwl  = xsolve.pwl(type, nstep, qmax, lambda, S,
+                           alpha, gprob, salval, nverb),
+        cont = xsolve.cont(type, tmax, nstep, qmax, lambda, S,
+                           alpha, gprob, salval, nverb)
+@
+
+
+1.3
+log
+@Added missing parenthesis in if() statement; took the
+tmax argument out of the call to xsolve.pwl().
+@
+text
+@d2 1
+a2 3
+                    prices = NULL, salval = 0, verb = FALSE) {
+#
+# Driver function to call the appropriate instance of the three
+d17 1
+a17 1
+                           alpha, gprob, prices, salval, verb),
+d19 1
+a19 1
+                           alpha, gprob, salval, verb),
+d21 1
+a21 1
+                           alpha, gprob, salval, verb)
+@
+
+
+1.2
+log
+@Changed the way xsolve() determines whether the setting should
+be condsidered to be piecewise linear.  (Now looks for alpha,
+beta, kn and tmax in the environment of S, instead of relying on
+S's having a "pwl" attribute.)
+@
+text
+@d10 1
+a10 1
+	} else if(is.function(S) {
+d20 1
+a20 1
+        pwl  = xsolve.pwl(type, tmax, nstep, qmax, lambda, S,
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d6 11
+a16 5
+#
+    soltype <- if(!is.null(prices)) "disc" else {
+        pwl <- attr(S,"pwl")
+        if(!is.null(pwl) && pwl) "pwl" else "cont"
+    }
+@

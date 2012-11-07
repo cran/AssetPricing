@@ -1,0 +1,64 @@
+\input{head2e}
+\usepackage{amsmath,amssymb}
+\newcommand{\vex}{\mbox{\boldmath $x$}}
+\newcommand{\vv}{\mbox{\boldmath $v$}}
+\begin{document}
+
+I find that I keep feeling confused over the business of optimizing
+with respect to price, particularly in the ``discrete price''
+setting.  These notes are an attempt to set down some clarification
+so as to prevent future confusion.
+
+The situation is that we have a system of differential equations
+for the expected values $v_q(t)$, explicitly
+\begin{equation}
+\dot{v}_q(t) = \lambda(t) (-v_q(t) + R_q(x,t \mid \vex))
+\label{eq:dotv}
+\end{equation}
+where $R_q(x,t \mid \vex)$ is the expected revenue, under pricing
+policy $\vex$, from a stock of size $q$ given an arrival at time $t$.
+The expression for $R_q(x,t \mid \vex)$ is somewhat complicated and
+differs between the singly indexed price setting and the doubly
+indexed price setting.  The exact expression for $R_q(x,t \mid \vex)$
+is however immaterial.  It depends (only) on the values of $x$,
+$v_q(t), q = 1, \ldots, q_{\rm max}$ (and some parameters which are
+assumed to be known).
+
+To determine an optimal pricing policy we need to choose $x$ to
+maximize $R_q(x,t \mid \vex)$.
+
+The reason that I get confused is that it looks like $\dot{v}_q(t)$ (and
+hence $v_q(t)$) depend on $R_q(x,t \mid \vex)$ which in turn depends on
+$v_q(t)$ so that we have a circularity.  And so we're stuck.
+
+But not so!  All we need is to be able to calculate $\dot{v}_q(t)$
+as a function of $v_q(t)$ and $t$.  Then we have a well-defined
+differential equation which we can solve numerically.  So we
+simply need to be able to maximize $R_q(x,t \mid \vex)$ as a function
+of a \emph{known} value of $v_q(t)$.  Then we can calculate the right
+hand side of (\ref{eq:dotv}) for any value of $v_q(t)$ and $t$, and
+that's all we need in order to be able to solve (\ref{eq:dotv})
+numerically.
+
+Well, O.K.  I'm playing just a \emph{little} bit fast and loose
+here to simplify the exposition.  I said that $R_q(x,t \mid \vex)$
+depends on $v_q(t), q = 1, \ldots, q_{\rm max}$, not just on the
+$v_q(t)$ that we are currently looking at.  But it's really alright.
+The easiest way to see this is to think in terms of a \emph{vector}
+system of differential equations
+\begin{equation}
+\dot{\vv}(t) = {\cal F}(\vv(t),t,\boldsymbol{R}^*(t))
+\label{eq:vecdotv}
+\end{equation}
+where $\vv(t) = \tr{(v_1(t), \ldots, v_{q_{\rm max}}(t))}$,
+and each entry of $\boldsymbol{R}^*(t)$ is the maximum over $x$
+of the corresponding entry of the vector of expected revenues
+$\boldsymbol{R}(x,t)$. This latter quantity depends (only) on $x$
+and $\vv(t)$.
+
+We can (in the discrete price setting) calculate the right hand
+side of (\ref{eq:vecdotv}) for any value of $\vv(t)$ and whence
+(\ref{eq:vecdotv}) is a well-defined (vector) differential equaion,
+which we can solve.  And Bob's your uncle.  Good old Uncle Bob.
+
+\end{document}

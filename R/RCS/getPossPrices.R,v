@@ -1,0 +1,63 @@
+head	1.2;
+access;
+symbols;
+locks
+	rolf:1.2; strict;
+comment	@# @;
+
+
+1.2
+date	2012.01.31.06.56.06;	author rolf;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2012.01.25.04.28.12;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Function to determine possible values (turning points in
+the appropriate intervals, together with the knots) for
+the location of the maximum of the conditional expected
+value, in the context of a price sensitivity function which
+is piecewise linear in price.
+@
+
+
+1.2
+log
+@Allocated rlst --- previously undefined; added argument
+Kpa; changed the name of "kappa" to "Kpa".
+@
+text
+@getPossPrices <- function(v,t,alpha,beta,kn,Kpa) {
+K <- length(kn)
+kn <- c(0,kn)
+rslt <- vector("list",K)
+for(k in 1:K) {
+	a <- alpha[[k]](t)
+	b <- beta[[k]](t)
+	xlo <- kn[k]
+	xhi <- kn[k+1]
+	rslt[[k]] <- turnPts(a,b,v,Kpa,xlo,xhi)
+}
+sort(unique(c(unlist(rslt),kn)))
+}
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 1
+getPossPrices <- function(v,t,alpha,beta,kn) {
+d4 1
+d10 1
+a10 1
+	rslt[[k]] <- turnPts(a,b,v,kappa,xlo,xhi)
+@

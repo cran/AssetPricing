@@ -1,0 +1,155 @@
+
+Version 0.0-8
+
+* Changed the examples for xsolve() and vsolve() to make
+  them run more quickly so as to reduce the time for package
+  checking on CRAN.
+
+Version 0.0-7 (Initial submission to CRAN, 7 November 2012).
+
+* Changed the name "parlist" to "parvec" to avoid confusion
+  (since this object is a *vector* and NOT a list).
+
+* Made vsolve() able to cope with discrete prices (and with
+  pwl price sensitivity functions.)
+
+* Re-ordered the arguments of vsolve(), xsolve(), xsolve.cont(),
+  xsolve.disc() and xsolve.pwl().
+
+* Made argument tmax of vsolve() default to the upper limit
+  of the "t"-axis associated with the argument "x".
+
+* Made argument "alpha" default to 1 when jmax=1 (so that it
+  needn't be specified when jmax=1).
+
+* Made argument "type" default to "sip".
+
+* Changed the name of an attribute of "funlist" objects
+  from "xlim" to "tlim" (since the relevant variable is
+  always referred to as "t").
+
+* Re-wrote many comments in the code.
+
+* Created a new function findSolType() to determine the
+  solution type --- cont, disc, or pwl.
+
+* Renamed the class "funlist" to "flap" (Function List
+  for Asset Pricing).
+
+* Re-wrote plot.flap() to handling "doubly indexed" price
+  arrays properly.
+
+* Replaced the argument "index" by groups to provide for
+  plotting of *groups* of traces (when "aao" is FALSE).
+
+* Changed the way "gloss" and "glind" are handled.
+
+* Adjusted putAway() in respect of the way the "jmax" attribute
+  is handled.
+
+* Added new argument "main.panel" and changed the handling
+  of "main".
+
+* Added argument "maxFac" to xsolve; used by xsolve.disc()
+  and xsolve.pwl() in choosing a maximum out of a finite
+  discrete set (when there is some ambiguity about which
+  maximum to use).  This gets rid of some anomalous looking
+  discontinuities in the optimal price functions.
+  Also added an object "xback" (the value of "x" at the
+  previous Runge-Kutta time step) to be assigned in the
+  environment of cev() by xsolve.pwl()) for use in selecting
+  the appropriate "maximum" in a way which enhances continuity.
+
+* Changed cev() to make use of "maxFac" and "xback" when
+  doing discrete maximization over price.
+
+* Re-wrote the comments in scrF.
+
+* Adjusted xsolve() and vsolve() to allow lambda to be a scalar
+  constant as well as a function.
+
+* Adjusted buildS() so that "tmax" is an attribute of the
+  returned value, rather than being assigned in the environment
+  of the returned value.  Made the corresponding adjustment
+  to the way that xsolve.pwl() accesses "tmax".
+
+* Adjusted vsolve() to throw an error if "jmax", as determined
+  from "gprob" is greater than the "jmax" attribute of "x",
+  and double indexing is in effect (i.e. "x" inherits from
+  "di.flap").
+
+Version 0.0-6
+
+* Added an argument "extend" to plot.funlist() --- controls
+  how much the x-axis is extended to the right to accommodate
+  the marginal gloss.  (It used to be fixed at 0.3, which is
+  now the default value.)
+
+* Corrected the references in the plot.funlist() help file;
+  ``to appear'' is no longer applicable.
+
+* Fixed a glitch in the examples for plot.funlist().
+
+* Installed 2012-02-18
+
+Version 0.0-5
+
+* major debugging; corrected some very silly structure
+  in xsolve.pwl(). Fixed a few other minor bugs in some
+  other functions.
+
+* changed the value out of range criterion in buildS.R
+  to use eps = sqrt(.Machine$double.eps)
+
+* changed vsolve() and xsolve.disc() to use "tvec" r.t.
+  incrementing tt by delta on each step.
+
+* changed vsolve() to make use of putAway()
+
+* changed putAway() to accommodate input from vsolve()
+  (whereby "x" is already an object of class "funlist"
+   which gets passed through as is).
+
+* Installed 2012-02-01
+
+Version 0.0-4
+
+* added xsolve.pwl()
+
+* added utility functions getPossPrices() and turnPts()
+  upon which xsolve.pwl() ultimately depends.
+
+* amended scrF() to call upon getPossPrices() appropriately.
+
+* amended the way things are assigned into the environment
+  of scrF() to accommodate the piecewise linear computations
+  in a convenient manner.
+
+* Installed 2012-01-25
+
+Version 0.0-3
+
+* Added xsolve.disc()
+  Still need to add xsolve.pwl().
+
+* Installed 2012-01-23
+
+Version 0.0-2
+
+* Added xsolve() to call upon xsolve.cont(), xsolve.disc(),
+  or xsolve.pwl() as appropriate.  (The latter two functions
+  are not yet written.)
+
+* Changed over the documentation for xsolve.cont() to be
+  documentation for xsolve (and made xsolve.cont() "internal").
+
+* Added buildS and documentation for it.
+
+* Installed 11 January 2012.
+
+Version 0.0-1
+
+* Adaptation of previously written "Apma", made to be better
+  structured.
+
+* Installed 20 November 2011.

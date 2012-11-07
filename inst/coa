@@ -1,0 +1,9 @@
+#! /bin/csh
+# Check out all.
+foreach file (`ls RCS`)
+set stem = `basename $file ,v`
+co -l $stem
+end
+
+# Unclutter:
+/bin/rm -f pander.R Pfun.R ror.R

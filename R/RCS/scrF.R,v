@@ -1,0 +1,280 @@
+head	1.9;
+access;
+symbols;
+locks
+	rolf:1.9; strict;
+comment	@# @;
+
+
+1.9
+date	2012.11.06.21.20.08;	author rolf;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2012.01.31.07.28.29;	author rolf;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2012.01.31.06.57.49;	author rolf;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2012.01.25.02.02.05;	author rolf;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2012.01.09.00.21.16;	author rolf;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2012.01.08.22.52.37;	author rolf;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2009.12.21.02.15.04;	author rolf;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2009.12.21.01.54.46;	author rolf;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2009.12.21.01.03.14;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Function ``script F'' defining the differential equation to
+be solved for v.
+@
+
+
+1.9
+log
+@Comments re-written.
+@
+text
+@scrF  <- function(v,tt,op=FALSE) {
+#
+# Note:  The object lambda and type are (always) assigned in the
+# environment of scrF.  When scrF is called by xsolve.disc(), the
+# vector "x" of *possible* prices is assigned in the environment
+# of scrF.  When scrF is called by vsolve() the pricing policy "x"
+# is assigned in the environment of scrF.  When scrF is called by
+# xsolve.pwl() the lists "alpha" and "beta" of coefficient functions
+# and knot vector "kn" for the piecewise linear representation of
+# S(x,t) are assigned in the environment of scrF.
+#
+# The value of this function is either vdot = ``script F''(v,t),
+# the (unstated :-( ) vectorized version of equation (2) of the
+# paper, *or* when op=TRUE the vector of optimal prices.  (The latter is
+# applicable only in the case of discrete prices or of a piecewise
+# linear price sensitivity function.)
+
+E <- parent.env(environment())
+if(is.null(E$x)) {
+# Here scrF is being called by xsolve.pwl() and the price elasticity
+# functions are piecewise linear (rather than discrete).  We want
+# to maximize over the possible price values, but first we need to
+# determine what the possible prices are.  Note that "x" is a list
+# here, with the q-th entry of the list being the vector of possible
+# optimal prices for stock size "q".
+	qmax <- length(v)
+	jmax <- length(gpr)
+	x    <- vector("list",qmax)
+	for(q in 1:qmax) {
+		jtop <- min(q,jmax)
+		Kpa  <- gpr[1:jtop]
+		if(jtop < jmax)
+			Kpa[jtop] <- Kpa[jtop] + environment(cev)$alpha*(1-sum(Kpa))
+		x[[q]] <- getPossPrices(v[1:q],tt,E$alpha,E$beta,E$kn,Kpa)
+	}
+} else if(inherits(x,"flap")) {
+# Here scrF is being called by vsolve() --- pricing policy is given
+# so x supplies the actual prices. No optimization to be done,
+# so just return the expected values.
+	xx <- sapply(x,function(f,t){f(t)},t=tt)
+	return(lambda(tt)*(-v + cev(xx,tt,v,type)))
+}
+
+# At this point either scrF was called by xsolve.pwl() and the
+# vector of possible prices x has been constructed, or scrF is being
+# called by xsolve.disc() and the set of possible (discrete) prices
+# was provided in the vector x which was assigned in the environment
+# of this function.  In either case the vector of possible prices
+# is now available and we can maximize over this vector.
+R <- cev(x,tt,v,type,maximize=TRUE)
+
+# The optimum prices have been determined (both discrete and
+# pwl settings).  If "op" is true we want the optimum prices;
+# otherwise we want the vdot values *at* the optimum prices.
+if(op) attr(R,"xopt") else lambda(tt)*(R - v)
+}
+@
+
+
+1.8
+log
+@Minor adjustments to comments.  Major correction to take
+account of the fact that the possible prices must be determined
+*separately* for each value of "q"; reversed the order of "R"
+and "v" at the end (R - v rather than -v + R) so that "vdot"
+gets the correct "xopt" attribute.
+@
+text
+@d20 6
+a25 1
+# We are in the piecewise linear setting
+d36 4
+a39 1
+} else if(inherits(x,"funlist")) {
+d43 7
+d51 4
+@
+
+
+1.7
+log
+@Revised the comments a bit.  Rearranged the if-else logic
+flow; changed min(q,jmax) to min(qmax,jmax).
+@
+text
+@d12 1
+a12 1
+# The value of this function is either vdot = {script F{(v,t),
+d14 3
+a16 3
+# paper *or*, when op=TRUE, the vector of optimal prices.
+# (The latter is applicable only in the case of discrete prices or
+# of a piecewise linear price sensitivity function.)
+d23 8
+a30 5
+	jtop <- min(qmax,jmax)
+	Kpa  <- gpr[1:jtop]
+	if(jtop < jmax)
+		Kpa[jtop] <- Kpa[jtop] + environment(cev)$alpha*(1-sum(Kpa))
+	x <- getPossPrices(v,tt,E$alpha,E$beta,E$kn,Kpa)
+d36 1
+a36 1
+if(op) attr(R,"xopt") else lambda(tt)*(-v + R)
+@
+
+
+1.6
+log
+@Revised the initial comments substantially.  Put in a structure
+to detect the piecewise linear setting, and to determine a set
+of possible prices over which to do a discrete maximization.
+@
+text
+@d12 1
+a12 1
+# The value of this function is either vdot = ``script F''(v,t),
+d14 3
+a16 3
+# paper, *or* when op=TRUE vector of optimal prices.  (The latter is
+# applicable only in the case of discrete prices or of a piecewise
+# linear price sensitivity function.)
+a17 4
+if(inherits(x,"funlist")) {
+	xx <- sapply(x,function(f,t){f(t)},t=tt)
+	return(lambda(tt)*(-v + cev(xx,tt,v,type)))
+}
+d23 1
+a23 1
+	jtop <- min(q,jmax)
+d28 3
+@
+
+
+1.5
+log
+@The object "x" (stored in the environment of scrF) is now
+allowed to be a vector of *possible* prices, over which to
+optimize.  Argument "op" added to allow request for
+optimization to be passed.
+@
+text
+@d3 8
+a10 2
+# Note:  The object lambda, x and type are assigned in the
+# environment of scrF.
+d12 6
+a17 2
+# This is the value of vdot = ``script F''(v,t), the (unstated :-( )
+# vectorized version of equation (2) of the paper.
+d22 11
+@
+
+
+1.4
+log
+@Just a change in the initial comment.
+@
+text
+@d1 1
+a1 1
+scrF  <- function(v,tt) {
+d8 6
+a13 2
+xx <- sapply(x,function(f,t){f(t)},t=tt)
+lambda(tt)*(-v + cev(xx,tt,v,type))
+@
+
+
+1.3
+log
+@Put in a missing closing parenthesis.
+@
+text
+@d6 4
+a9 2
+# This is the value of vdot = ``script F''(v,t).
+lambda(tt)*(-v + cev(x,tt,v,type))
+@
+
+
+1.2
+log
+@Changed the previous version (designed to handle discrete
+prices in the single arrivals setting) completely.  It
+now just implements equation (1) of ``the paper'' in a
+straightforward manner.
+@
+text
+@d7 1
+a7 1
+lambda(tt)*(-v + cev(x,tt,v,type)
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 1
+scrF  <- function(tt,v,price,lfun,efun,op=FALSE) {
+d3 2
+a4 1
+# op = ``determine the optimal price''
+d6 2
+a7 7
+		R <- outer(price,diff(v),"-")*efun(price,tt)
+                if(op) {
+			jm <- apply(R,2,which.max)
+			x  <- price[jm]
+		}
+		else x <- c(0,lfun(tt)*apply(R,2,max))
+		x
+@

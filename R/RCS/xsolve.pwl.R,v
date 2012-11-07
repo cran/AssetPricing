@@ -1,0 +1,406 @@
+head	1.5;
+access;
+symbols;
+locks
+	rolf:1.5; strict;
+comment	@# @;
+
+
+1.5
+date	2012.11.06.21.21.46;	author rolf;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2012.01.31.07.54.32;	author rolf;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2012.01.31.07.03.31;	author rolf;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2012.01.25.01.58.58;	author rolf;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2012.01.09.00.36.09;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Function to effect the solution for optimal prices when
+the price sensitivity function is piecewise linear in price.
+@
+
+
+1.5
+log
+@Cosmetic tidying.
+@
+text
+@xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nstep,type,
+                           alpha,salval,maxFac,nverb) {
+#
+# Function xsolve.pwl to solve numerically the system of d.e.'s
+# for the value v_q(t) of a stock of q items at time t, using
+# the method of Runge-Kutta, in the setting in which prices vary
+# continuously but the price sensitivity functions are powers of a
+# function (the "group size = 1" function) which is piecewise linear
+# in x.  The optimal prices are determined by maximizing over the
+# discrete set consisting of:
+#
+# 	(1) The ``knots'' x_1, ..., x_K of the price sensitivity function.
+#	(2) The zeros of the derivative of the conditional (given an arrival
+#           at time "t") expected value of the stock.  Note that this
+#           conditional expected value is a piecewise polynomial in the
+#           price "x" whence so is its derivative.
+#
+# We are solving the vector system of differential equations
+#
+#	vdot(t) = {script F}(v,t)
+#
+# The function "script F" is represented as scrF() in the code.
+
+# Make sure the group size probabilities are OK.
+    gpr <- if(is.function(gprob)) gprob(1:qmax) else gprob
+    if(!is.numeric(gpr)) stop("Group size probabilities are not numeric.\n")
+    if(any(gpr<0) | sum(gpr) > 1)
+    	stop("Group size probabilities are not probabilities!\n")
+    jmax <- max(which(gpr > sqrt(.Machine$double.eps)))
+    jmax <- min(jmax,qmax)
+    gpr  <- gpr[1:jmax]
+    if(is.null(alpha)) {
+       if(jmax > 1) stop(paste("When the maximum group size is great than 1,\n",
+                               "\"alpha\" must be specified.\n"))
+       alpha <- 1
+    }
+    
+# If jmax = 1 we might as well set type equal to "sip" --- since
+# indexing according to group size is "degenerate" in this case.
+    if(jmax==1) type <- "sip"
+    
+# Dig out the upper bound for the values of residual time.
+    if(is.null(tmax)) {
+        tmax <- attr(S,"tmax")
+    } else if(tmax > attr(S,"tmax")) {
+        stop(paste("Argument \"tmax\" is greater than the \"tmax\" attribute\n",
+                   "of the pwl price sensitivity function specified as\n",
+                   "argument \"S\".\n"))
+    }
+    
+# Stow necessary objects in the environment of scrF.
+    environment(scrF) <- new.env()
+    assign("type",type,envir=environment(scrF))
+    assign("lambda",lambda,envir=environment(scrF))
+    assign("alpha",get("alpha",envir=environment(S)),envir=environment(scrF))
+    assign("beta",get("beta",envir=environment(S)),envir=environment(scrF))
+    assign("kn",get("kn",envir=environment(S)),envir=environment(scrF))
+#
+# There should be only one price sensitivity function. Create a new
+# function equal to the original function raised to the power "n", with
+# "n" a function argument; call it "dS" to make notation compatible
+# with the "smooth" case.
+    dS <- with(list(S=S),function(x,t,n) {S(x,t)^n})
+
+# Stow necessary objects in the environment of cev.
+    environment(cev) <- new.env()
+    assign("dS",dS,envir=environment(cev))
+    assign("gpr",gpr,envir=environment(cev))
+    assign("alpha",alpha,envir=environment(cev))
+    assign("maxFac",maxFac,envir=environment(cev))
+    
+# Do the Runge-Kutta thing.
+    delta <- tmax/nstep
+    tstor <- list()
+    tvec  <- seq(0,tmax,length=nstep+1)
+    tt    <- tvec[1]
+    v     <- (1:qmax)*salval
+    vdot  <- scrF(v,tt)
+    x     <- scrF(v,tt,op=TRUE)
+    tstor[[1]] <- list(x=x,v=v,vdot=vdot)
+    
+    for(i in 1:nstep) {
+            assign("xback",x,envir=environment(cev))
+    	m1 <- delta*scrF(v,tt)
+    	m2 <- delta*scrF(v+m1/2,tt+delta/2)
+    	m3 <- delta*scrF(v+m2/2,tt+delta/2)
+    	m4 <- delta*scrF(v+m3,tt+delta)
+    	v    <- v + (m1+2*m2+2*m3+m4)/6
+    	tt   <- tvec[i+1]
+    	vdot <- scrF(v,tt)
+    	x    <- scrF(v,tt,op=TRUE)
+    	tstor[[i+1]] <- list(x=x,v=v,vdot=vdot)
+    	if(nverb > 0 & i%%nverb == 0) cat(i,"")
+    	if(nverb > 0 & i%%(10*nverb) == 0) cat("\n")
+    }
+    if(nverb >= 0 & nstep%%10 != 0) cat("\n")
+    putAway(tstor,type,jmax,qmax,tmax,discrete=FALSE)
+}
+@
+
+
+1.4
+log
+@Rearranged the order of stowing things in environments
+mainly so as to make it easier to get at "tmax" from the
+environment of S.  Changed discrete=TRUE to discrete=FALSE
+in call to putAway().  Put the updating of "tt" in the
+right place.  Changed the argument "verb" to "nverb" so that
+reports are generated every nverb iterations at the user's
+discretion.  Made use of the "with(list(...))" syntax in
+constructing new S from old S.
+@
+text
+@d1 2
+a2 2
+xsolve.pwl <- function(type, nstep, qmax, lambda, S,
+                           alpha, gprob, salval=0, nverb=0) {
+d25 17
+a41 8
+gpr <- if(is.function(gprob)) gprob(1:qmax) else gprob
+if(!is.numeric(gpr)) stop("Group size probabilities are not numeric.\n")
+if(any(gpr<0) | sum(gpr) > 1)
+	stop("Group size probabilities are not probabilities!\n")
+jmax <- max(which(gpr > sqrt(.Machine$double.eps)))
+jmax <- min(jmax,qmax)
+gpr  <- gpr[1:jmax]
+
+d43 15
+a57 9
+tmax <- get("tmax",envir=environment(S))
+
+# Stow necessary objects in appropriate environments.
+environment(scrF) <- new.env()
+assign("type",type,envir=environment(scrF))
+assign("lambda",lambda,envir=environment(scrF))
+assign("alpha",get("alpha",envir=environment(S)),envir=environment(scrF))
+assign("beta",get("beta",envir=environment(S)),envir=environment(scrF))
+assign("kn",get("kn",envir=environment(S)),envir=environment(scrF))
+d61 3
+a63 9
+# "n" a function argument.
+S <- with(list(oldS=S),function(x,t,n) {oldS(x,t)^n})
+#
+# Continue stowing away.
+environment(cev) <- new.env()
+assign("dS",S,envir=environment(cev))  # "dS" to make notation compatible with
+                                       # the "smooth" case.
+assign("gpr",gpr,envir=environment(cev))
+assign("alpha",alpha,envir=environment(cev))
+d65 7
+d73 25
+a97 24
+delta <- tmax/nstep
+tstor <- list()
+tvec  <- seq(0,tmax,length=nstep+1)
+tt    <- tvec[1]
+v     <- (1:qmax)*salval
+vdot  <- scrF(v,tt)
+x     <- scrF(v,tt,op=TRUE)
+tstor[[1]] <- list(x=x,v=v,vdot=vdot)
+
+for(i in 1:nstep) {
+	m1 <- delta*scrF(v,tt)
+	m2 <- delta*scrF(v+m1/2,tt+delta/2)
+	m3 <- delta*scrF(v+m2/2,tt+delta/2)
+	m4 <- delta*scrF(v+m3,tt+delta)
+	v    <- v + (m1+2*m2+2*m3+m4)/6
+	tt   <- tvec[i+1]
+	vdot <- scrF(v,tt)
+	x    <- scrF(v,tt,op=TRUE)
+	tstor[[i+1]] <- list(x=x,v=v,vdot=vdot)
+	if(nverb > 0 & i%%nverb == 0) cat(i,"")
+	if(nverb > 0 & i%%(10*nverb) == 0) cat("\n")
+}
+if(nverb >= 0) cat("\n")
+putAway(tstor,type,jmax,qmax,tmax,discrete=FALSE)
+@
+
+
+1.3
+log
+@Took out the tmax argument; that is now obtained from the
+environment of "S"; got the order of the arguments right
+in the call to scrF(); change 0:qmax to 1:qmax in the
+initialization of "v"; took "prices" out of the call to
+putAway().
+@
+text
+@d2 1
+a2 1
+                           alpha, gprob, salval=0, verb=FALSE) {
+d33 11
+d47 1
+a47 6
+
+oldS <- S
+S    <- function(x,t,n) {oldS(x,t)^n}
+environment(S) <- new.env()
+assign("oldS",oldS,envir=environment(S))
+
+d49 1
+a54 6
+#
+environment(scrF) <- new.env()
+assign("type",type,envir=environment(scrF))
+assign("alpha",get("alpha",envir=environment(oldS)),envir=environment(scrF))
+assign("beta",get("beta",envir=environment(oldS)),envir=environment(scrF))
+assign("kn",get("kn",envir=environment(oldS)),envir=environment(scrF))
+a56 1
+tmax  <- get("tmax",envir=environment(oldS))
+d72 1
+a74 1
+	tt   <- tvec[i+1]
+d76 2
+a77 1
+	if(verb & i%%50 == 0) cat(i,"")
+d79 2
+a80 2
+if(verb) cat("\n")
+putAway(tstor,type,jmax,qmax,tmax,discrete=TRUE)
+@
+
+
+1.2
+log
+@Major revisions to accommodate the new structure of the
+package, in particular to allow for group arrivals, which
+necessitates finding the zeroes of polynomials (using polyroot)
+rather than simply solving one-variable linear equations.
+@
+text
+@d1 1
+a1 1
+xsolve.pwl <- function(type, tmax, nstep, qmax, lambda, S,
+d43 1
+a43 1
+environment(cev)     <- new.env()
+d49 1
+a49 2
+environment(scrF)    <- new.env()
+assign("lambda",lambda,envir=environment(scrF))
+d56 1
+d61 3
+a63 3
+v     <- (0:qmax)*salval
+vdot  <- scrF(tt,v)
+x     <- scrF(tt,v,op=TRUE)
+d67 4
+a70 4
+	m1 <- delta*scrF(tt,v)
+	m2 <- delta*scrF(tt+delta/2,v+m1/2)
+	m3 <- delta*scrF(tt+delta/2,v+m2/2)
+	m4 <- delta*scrF(tt+delta,v+m3)
+d72 2
+a73 2
+	vdot <- scrF(tt,v)
+	x    <- scrF(tt,v,op=TRUE)
+d79 1
+a79 1
+putAway(tstor,type,jmax,qmax,tmax,discrete=TRUE,prices=prices)
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 2
+a2 2
+xsolve.pwl <- function(tmax,nstep,qmax,efun,salval,
+                       n.out=max(500,round(nstep/200)),verb=FALSE) {
+d7 10
+a16 9
+# continuously but the elasticity function is piecewise linear in x.
+# The optimal prices are determined by maximizing over the discrete
+# set consisting of:
+#
+# 	(1) The ``knots'' x_1, ..., x_k of the elasticity function.
+#	(2) The points v_q - v_{q-1} - alpha_i/(2*beta_i),
+#           for i = 1, ..., k, where alpha_i and beta_i are
+#	    the slope and intercept of the elasticity function
+#	    over the interval [x_{i-1},x_i].
+d22 33
+a54 24
+# In what follows, ``script F'' is denoted by ``scrF()''; of
+# course scrF() has a bunch of auxilliary arguments in addition to
+# v and t.
+
+scrF  <- function(tt,v,lfun,efun,op=FALSE) {
+#
+# op = ``determine the optimal price''
+#
+
+# Get the discrete set of possible prices over which
+# to maximize.
+	price <- get.price.set(tt,v,efun)
+	R <- (price-diff(v))*efun(price,tt)
+	R[is.na(R)] <- -1
+        if(op) {
+		jm <- apply(R,1,which.max)
+		m  <- nrow(R)
+	# Return the optimal price vector.
+		return(price[cbind(1:m,jm)])
+	}
+	# Else return the vdot vector.
+	c(0,lfun(tt)*apply(R,1,max))
+}
+lfun <- get("lfun",envir=environment(efun))
+d56 1
+d62 2
+a63 2
+vdot  <- scrF(tt,v,lfun,efun)
+x     <- scrF(tt,v,lfun,efun,op=TRUE)
+d67 4
+a70 4
+	m1 <- delta*scrF(tt,v,lfun,efun)
+	m2 <- delta*scrF(tt+delta/2,v+m1/2,lfun,efun)
+	m3 <- delta*scrF(tt+delta/2,v+m2/2,lfun,efun)
+	m4 <- delta*scrF(tt+delta,v+m3,lfun,efun)
+d72 2
+a73 2
+	vdot <- scrF(tt,v,lfun,efun)
+	x    <- scrF(tt,v,lfun,efun,op=TRUE)
+d79 1
+a79 34
+xx   <- matrix(unlist(lapply(tstor,function(z){z$x})),
+                             nrow=nstep+1,ncol=qmax,byrow=TRUE)
+ylim <- range(xx)
+xx   <- as.data.frame(xx)
+
+foo  <- function(x,y,n) {
+	temp <- spline(x,y,n)
+	splinefun(temp$x,temp$y)
+}
+
+x    <- lapply(xx,function(x,t,n){foo(x=t,y=x,n=n)},t=tvec,n=n.out)
+attr(x,'xlim') <- c(0,tmax)
+attr(x,'ylim') <- ylim
+class(x) <- "funlist"
+comment(x) <- "Optimal prices."
+
+vv   <- matrix(unlist(lapply(tstor,function(z){z$v[-1]})),
+                             nrow=nstep+1,ncol=qmax,byrow=TRUE)
+ylim <- range(vv)
+vv   <- as.data.frame(vv)
+v    <- lapply(vv,function(x,t,n){foo(x=t,y=x,n=n)},t=tvec,n=n.out)
+attr(v,'xlim') <- c(0,tmax)
+attr(v,'ylim') <- ylim
+class(v) <- "funlist"
+
+vd   <- matrix(unlist(lapply(tstor,function(z){z$vdot[-1]})),
+                             nrow=nstep+1,ncol=qmax,byrow=TRUE)
+ylim <- range(vd)
+vd   <- as.data.frame(vd)
+vdot <- lapply(vd,function(x,t,n){foo(x=t,y=x,n=n)},t=tvec,n=n.out)
+attr(vdot,'xlim') <- c(0,tmax)
+attr(vdot,'ylim') <- ylim
+class(vdot) <- "funlist"
+list(x=x,v=v,vdot=vdot)
+@

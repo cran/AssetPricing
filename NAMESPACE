@@ -1,0 +1,5 @@
+
+# Export pretty-well everything except ".newt", "plot.stepfun" and "rwmax".
+export(a2sf, qj2i, turnPts, xsolve.disc, buildS, getPossPrices,
+plot.flap, vsolve, xsolve.pwl, cev, i2qj, scrF, vupdate, xsolve,
+findSolType, initx, putAway, scrG, xsolve.cont)

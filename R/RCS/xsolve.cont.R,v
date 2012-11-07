@@ -1,0 +1,724 @@
+head	1.15;
+access;
+symbols;
+locks
+	rolf:1.15; strict;
+comment	@# @;
+
+
+1.15
+date	2012.11.06.21.20.36;	author rolf;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	2012.01.31.07.35.04;	author rolf;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	2012.01.25.01.47.52;	author rolf;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	2012.01.09.00.23.36;	author rolf;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2012.01.09.00.06.35;	author rolf;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	2009.12.21.02.01.13;	author rolf;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2009.11.29.02.53.56;	author rolf;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	2009.11.21.02.08.22;	author rolf;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2009.11.19.07.30.56;	author rolf;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2009.10.31.23.53.07;	author rolf;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2009.10.31.23.05.52;	author rolf;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2009.10.23.21.41.14;	author rolf;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2009.09.19.23.56.36;	author rolf;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2009.09.19.22.18.43;	author rolf;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2009.09.19.02.12.56;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Solve the differential equation for the optimal prices,
+via Runge-Kutta, in the continuous price case.
+@
+
+
+1.15
+log
+@Cosmetic tidying.
+@
+text
+@xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nstep,type,
+                        alpha,salval,nverb) {
+#
+# Function xsolve.cont to solve numerically the system of d.e.'s for
+# the optimum price x_q(t) of an item of stock when there are q
+# items remaining at time t.  Of necessity the price x_q(t) must be
+# ***continuous*** for this function to make sense.  The procedure uses
+# the method of Runge-Kutta.  (Note that time is residual time, i.e.
+# the time remaining until the expiry date, and hence decreases as
+# the expiry date approaches. However we solve forward in time,
+# starting from the expiry date, i.e. t=0.
+#
+# Note that
+#           - S is an *expression* or *call*, or a *list* of such,
+#             specifying the time-varying price sensitivity.
+#           - lambda is the intensity of the Poisson arrival process
+#           - gprob specifies the probability function for the size
+#             of the arriving group of customers, either as a function
+#             or as a vector of probabilities.
+#           - tmax is the length of the time interval over which
+#             we are solving the differential equation
+#           - qmax is the initial number of items for sale, tmax
+#             time units from the expiry date
+#           - nstep is the number of Runge-Kutta steps to take
+#             in the solution process
+#           - type is the specification of the model type, either ``sip''
+#             (singly indexed prices) or ``dip'' (doubly indexed prices).
+#           - salval is the ``salvage value'' of an item of stock when
+#             the expiry date or deadline is reached; used to determine
+#             the initial conditions.
+#           - nverb specifies how often "progress reports" should be
+#             printed out.
+#
+# Note that ``scrG'' means ``script G function''; the (vector) d.e.
+# that we are solving is
+#                        ``x.dot = {script G}(x,t)''
+#
+
+# Make sure the group size probabilities are OK.
+    gpr <- if(is.function(gprob)) gprob(1:qmax) else gprob
+    if(!is.numeric(gpr)) stop("Group size probabilities are not numeric.\n")
+    if(any(gpr<0) | sum(gpr) > 1)
+    	stop("Group size probabilities are not probabilities!\n")
+    jmax <- max(which(gpr > sqrt(.Machine$double.eps)))
+    jmax <- min(jmax,qmax)
+    gpr  <- gpr[1:jmax]
+    if(is.null(alpha)) {
+       if(jmax > 1) stop(paste("When the maximum group size is great than 1,\n",
+                               "\"alpha\" must be specified.\n"))
+       alpha <- 1
+    }
+
+# If jmax = 1 we might as well set type equal to "sip" --- since
+# indexing according to group size is "degenerate" in this case.
+    if(jmax==1) type <- "sip"
+
+# Make sure tmax is specified.
+    if(is.null(tmax)) stop("Argument \"tmax\" was not specified.\n")
+
+# Differentiate each price sensitivity function.  If there
+# is only one such, raise it to the power "n" and differentiate
+# the result, making "n" a function argument.
+    if(is.list(S)) {
+    	if(length(S) < jmax)
+    		stop(paste("Length of \"S\" as a list must be at least ",
+                               "\"jmax\" = ",jmax,".\n",sep=""))
+    	dS <- list()
+    	for(i in 1:jmax) {
+    		xxx  <- deriv3(S[[i]],c("x","t"),function.arg=c("x","t"))
+    		environment(xxx) <- new.env()
+    		pars <- attr(S[[i]],"parvec")
+    		for(nm in names(pars)) {
+    			assign(nm,pars[nm],envir=environment(xxx))
+    		}
+    		dS[[i]] <- xxx
+    	}
+    } else {
+    	pars <- attr(S,"parvec")
+    	S <- substitute(a^b,list(a=S[[1]],b=quote(n)))
+    	dS <- deriv3(S,c("x","t"),function.arg=c("x","t","n"))
+    	environment(dS) <- new.env()
+    	for(nm in names(pars)) {
+    		assign(nm,pars[nm],envir=environment(dS))
+    	}
+    }
+
+    environment(vupdate) <- new.env()
+    environment(scrG)    <- new.env()
+    environment(initx)   <- new.env()
+    environment(cev)     <- new.env()
+#
+    assign("dS",dS,envir=environment(vupdate))
+    assign("dS",dS,envir=environment(scrG))
+    assign("dS",dS,envir=environment(initx))
+    assign("dS",dS,envir=environment(cev))
+#
+    assign("gpr",gpr,envir=environment(vupdate))
+    assign("gpr",gpr,envir=environment(scrG))
+    assign("gpr",gpr,envir=environment(initx))
+    assign("gpr",gpr,envir=environment(cev))
+#
+    assign("alpha",alpha,envir=environment(vupdate))
+    assign("alpha",alpha,envir=environment(scrG))
+    assign("alpha",alpha,envir=environment(initx))
+    assign("alpha",alpha,envir=environment(cev))
+#
+    assign("lambda",lambda,envir=environment(vupdate))
+#
+    assign("type",type,envir=environment(scrG))
+
+# Set thing up for doing Runge-Kutta.
+    delta <- tmax/nstep
+    tstor <- list()
+    tvec  <- seq(0,tmax,length=nstep+1)
+    tt    <- tvec[1]
+    v     <- (1:qmax)*salval
+    x     <- initx(v,type)
+    vdot  <- lambda(tt)*(-v + cev(x,tt,v,type))
+    tstor[[1]] <- list(x=x,v=v,vdot=vdot)
+
+# Do the Runge-Kutta thing.
+    for(i in 1:nstep) {
+    	m1 <- delta*scrG(x,tt)
+    	m2 <- delta*scrG(x+m1/2,tt+delta/2)
+    	m3 <- delta*scrG(x+m2/2,tt+delta/2)
+    	m4 <- delta*scrG(x+m3,tt+delta)
+    	x <- x + (m1+2*m2+2*m3+m4)/6
+    	tt <- tvec[i+1]
+    	vvdot <- vupdate(x,tt,type)
+    	tstor[[i+1]] <- list(x=x,v=vvdot[["v"]],vdot=vvdot[["vdot"]])
+    	if(nverb > 0 & i%%nverb == 0) cat(i,"")
+    	if(nverb > 0 & i%%(10*nverb) == 0) cat("\n")
+    }
+        if(nverb >= 0 & nstep%%10 != 0) cat("\n")
+
+    putAway(tstor,type,jmax,qmax,tmax,discrete=FALSE)
+}
+@
+
+
+1.14
+log
+@Changed the argument "verb" to "nverb" so that reports are
+generated every nverb iterations at the user's discretion.
+@
+text
+@d1 2
+a2 2
+xsolve.cont <- function(type,tmax,nstep,qmax,lambda,S,alpha,
+                        gprob,salval=0,nverb=0) {
+a13 11
+#           - type is the specification of the model type.
+#             At this time (14 November 2009) there are only two
+#             possibilities ``sip'' (singly indexed prices) and
+#             ``dip'' (doubly indexed prices).
+#           - tmax is the length of the time interval over which
+#             we are solving the differential equation
+#           - nstep is the number of Runge-Kutta steps to take
+#             in the solution process
+#           - qmax is the initial number of items for sale, tmax
+#             time units from the expiry date
+#           - lambda is the intensity of the Poisson arrival process
+d16 1
+d20 8
+d31 2
+d40 19
+a58 7
+gpr <- if(is.function(gprob)) gprob(1:qmax) else gprob
+if(!is.numeric(gpr)) stop("Group size probabilities are not numeric.\n")
+if(any(gpr<0) | sum(gpr) > 1)
+	stop("Group size probabilities are not probabilities!\n")
+jmax <- max(which(gpr > sqrt(.Machine$double.eps)))
+jmax <- min(jmax,qmax)
+gpr  <- gpr[1:jmax]
+d63 43
+a105 43
+if(is.list(S)) {
+	if(length(S) != jmax)
+		stop(paste("Length of \"S\" as a list must equal ",
+                           "\"jmax\" = ",jmax,".\n",sep=""))
+	dS <- list()
+	for(i in 1:jmax) {
+		xxx  <- deriv3(S[[i]],c("x","t"),function.arg=c("x","t"))
+		environment(xxx) <- new.env()
+		pars <- attr(S[[i]],"parlist")
+		for(nm in names(pars)) {
+			assign(nm,pars[nm],envir=environment(xxx))
+		}
+		dS[[i]] <- xxx
+	}
+} else {
+	pars <- attr(S,"parlist")
+	S <- substitute(a^b,list(a=S[[1]],b=quote(n)))
+	dS <- deriv3(S,c("x","t"),function.arg=c("x","t","n"))
+	environment(dS) <- new.env()
+	for(nm in names(pars)) {
+		assign(nm,pars[nm],envir=environment(dS))
+	}
+}
+
+environment(vupdate) <- new.env()
+environment(scrG)    <- new.env()
+environment(initx)   <- new.env()
+environment(cev)     <- new.env()
+#
+assign("dS",dS,envir=environment(vupdate))
+assign("dS",dS,envir=environment(scrG))
+assign("dS",dS,envir=environment(initx))
+assign("dS",dS,envir=environment(cev))
+#
+assign("gpr",gpr,envir=environment(vupdate))
+assign("gpr",gpr,envir=environment(scrG))
+assign("gpr",gpr,envir=environment(initx))
+assign("gpr",gpr,envir=environment(cev))
+#
+assign("alpha",alpha,envir=environment(vupdate))
+assign("alpha",alpha,envir=environment(scrG))
+assign("alpha",alpha,envir=environment(initx))
+assign("alpha",alpha,envir=environment(cev))
+d107 1
+a107 1
+assign("lambda",lambda,envir=environment(vupdate))
+d109 1
+a109 1
+assign("type",type,envir=environment(scrG))
+d112 8
+a119 8
+delta <- tmax/nstep
+tstor <- list()
+tvec  <- seq(0,tmax,length=nstep+1)
+tt    <- tvec[1]
+v     <- (1:qmax)*salval
+x     <- initx(v,type)
+vdot  <- lambda(tt)*(-v + cev(x,tt,v,type))
+tstor[[1]] <- list(x=x,v=v,vdot=vdot)
+d122 13
+a134 13
+for(i in 1:nstep) {
+	m1 <- delta*scrG(x,tt)
+	m2 <- delta*scrG(x+m1/2,tt+delta/2)
+	m3 <- delta*scrG(x+m2/2,tt+delta/2)
+	m4 <- delta*scrG(x+m3,tt+delta)
+	x <- x + (m1+2*m2+2*m3+m4)/6
+	tt <- tvec[i+1]
+	vvdot <- vupdate(x,tt,type)
+	tstor[[i+1]] <- list(x=x,v=vvdot[["v"]],vdot=vvdot[["vdot"]])
+	if(nverb > 0 & i%%nverb == 0) cat(i,"")
+	if(nverb > 0 & i%%(10*nverb) == 0) cat("\n")
+}
+if(nverb > 0) cat("\n")
+d136 1
+a136 1
+putAway(tstor,type,jmax,qmax,tmax,discrete=FALSE)
+@
+
+
+1.13
+log
+@Took out the n.out argument; no longer used.
+@
+text
+@d2 1
+a2 1
+                        gprob,salval=0,verb=FALSE) {
+d119 2
+a120 1
+	if(verb & i%%50 == 0) cat(i,"")
+d122 1
+a122 1
+if(verb) cat("\n")
+@
+
+
+1.12
+log
+@Major rearrangement; revised argument list; output now handled
+by the putAway() function.
+@
+text
+@d2 1
+a2 2
+                        gprob,salval=0,verb=FALSE,
+                        n.out=max(500,round(nstep/200))) {
+@
+
+
+1.11
+log
+@Added "..." argument; corrected a typo in a comment.
+@
+text
+@d124 1
+a124 41
+# Equation solved; now do a bunch of housekeeping to store
+# the results in a convenient manner.
+foo  <- function(x,y,n) {
+	temp <- spline(x,y,n)
+	splinefun(temp$x,temp$y)
+}
+
+# Put away the optimal prices.  Note that if type == "dip"
+# then the entry x[[i]] is equal to the function x_qj(t) where
+# i = (j-1)*(qmax - j/2) + q 
+nc   <- if(type=="dip") jmax*(qmax - (jmax-1)/2) else qmax
+xx   <- as.data.frame(matrix(unlist(lapply(tstor,function(z){z$x})),
+                             nrow=nstep+1,ncol=nc,byrow=TRUE))
+x    <- lapply(xx,function(x,t,n){foo(x=t,y=x,n=n)},t=tvec,n=n.out)
+ylim <- range(xx)
+attr(x,'xlim') <- c(0,tmax)
+attr(x,'ylim') <- ylim
+attr(x,'qmax') <- qmax
+attr(x,'jmax') <- jmax
+comment(x) <- "Optimal prices."
+class(x) <- "funlist"
+if(type=="dip") class(x) <- c(class(x),"di.funlist")
+
+# Put away the optimal expected values.
+vv   <- as.data.frame(matrix(unlist(lapply(tstor,function(z){z$v})),
+                             nrow=nstep+1,ncol=qmax,byrow=TRUE))
+v    <- lapply(vv,function(x,t,n){foo(x=t,y=x,n=n)},t=tvec,n=n.out)
+ylim <- range(vv)
+attr(v,'xlim') <- c(0,tmax)
+attr(v,'ylim') <- ylim
+class(v) <- "funlist"
+
+# Put away the derivatives of the optimal expected values.
+vd   <- as.data.frame(matrix(unlist(lapply(tstor,function(z){z$vdot})),
+                             nrow=nstep+1,ncol=qmax,byrow=TRUE))
+vdot <- lapply(vd,function(x,t,n){foo(x=t,y=x,n=n)},t=tvec,n=n.out)
+ylim <- range(vd)
+attr(vdot,'xlim') <- c(0,tmax)
+attr(vdot,'ylim') <- ylim
+class(vdot) <- "funlist"
+list(x=x,v=v,vdot=vdot)
+@
+
+
+1.10
+log
+@Fixed an error with respect to lambda.t; this was the
+value of lambda(t) and for 3 of the 4 calls to scrG this
+was wrong.  It should've been lambda(t+delta/2) (twice),
+and lambda(t+delta) (once).  Changed the structure so that
+lambda(t) gets calculated in vupdate(), using the current
+(correct!) value of t.
+@
+text
+@d3 1
+a3 1
+                        n.out=max(500,round(nstep/200)),...) {
+d132 1
+a132 1
+# then the entry x[[i]] is equal the function x_qj(t) where
+@
+
+
+1.9
+log
+@Assigned new environment to vupdate(), scrG(), initx(),
+and cev(), before assigning variables (parameters etc.)
+into these environments.
+@
+text
+@d80 1
+d85 1
+d90 1
+d95 4
+a104 1
+lam.t <- lambda(tt)
+d112 4
+a115 5
+	assign("lambda.t",lam.t,envir=environment(scrG))
+	m1 <- delta*scrG(x,tt,type)
+	m2 <- delta*scrG(x+m1/2,tt+delta/2,type)
+	m3 <- delta*scrG(x+m2/2,tt+delta/2,type)
+	m4 <- delta*scrG(x+m3,tt+delta,type)
+d118 1
+a118 2
+	lam.t <- lambda(tt)
+	vvdot <- vupdate(x,tt,lam.t,type)
+d141 2
+@
+
+
+1.8
+log
+@Introduced truncation of gpr to the length at which it
+(effectively) becomes 0.  Introduced jmax as the length
+of gpr.  Replaced some references to qmax by corresponding
+references to jmax.  Fixed a reference to ``t'' which should
+have been ``tt''.  (When the phuque did that sneak in?)
+@
+text
+@d76 4
+@
+
+
+1.7
+log
+@Changed occurrences of Si to S[[i]] and S respectively;
+added a missing parenthesis at end of assignment to vdot.
+@
+text
+@d16 3
+a18 3
+#             At this time there are only two possibilities
+#             ``sip'' (singly indexed prices) and ``dip''
+#             doubly indexed prices.
+d45 3
+a47 2
+if(length(gpr) < qmax) gpr <- c(gpr,rep(0,qmax-length(gpr)))
+if(length(gpr) > qmax) gpr <- gpr[1:qmax]
+d53 3
+a55 2
+	if(length(S) != qmax)
+		stop("Length of \"S\" as a list must equal \"qmax\".\n")
+d57 1
+a57 1
+	for(i in 1:qmax) {
+d97 1
+a97 1
+vdot  <- lambda(tt)*(-v + cev(x,t,v,type))
+d110 1
+a110 1
+	vvdot <- vupdate(x,t,lam.t,type)
+d126 1
+a126 1
+nc   <- if(type=="dip") qmax*(1+qmax)/2 else qmax
+@
+
+
+1.6
+log
+@Fixed glitches w.r.t. references to ``scenario''; changed
+to references to ``type''.  Fixed up storage of dS, gpr,
+and alpha in the environments of cev, initx, scrG, and
+vupdate.
+@
+text
+@d56 1
+a56 1
+		xxx  <- deriv3(Si,c("x","t"),function.arg=c("x","t"))
+d67 1
+a67 1
+	dS <- deriv3(Si,c("x","t"),function.arg=c("x","t","n"))
+d95 1
+a95 1
+vdot  <- lambda(tt)*(-v + cev(x,t,v,type)
+@
+
+
+1.5
+log
+@Revised to cope with the two types of model (singly indexed
+prices and doubly indexed prices), and to use the price
+sensitivity function(s) directly (probability matrices
+having been eschewed).
+@
+text
+@d1 1
+a1 1
+xsolve.cont <- function(scenario,tmax,nstep,qmax,lambda,S,
+d15 4
+a18 2
+#           - scenario is the specification of the group behaviour.
+#             At this time there are only two possibilities.
+d51 1
+a51 1
+if(!is.list(S)) {
+a55 1
+		pars <- attr(S[[i]],"parlist")
+d58 1
+d65 2
+a66 1
+	S <- substitute(a^b,list(a=S[[1]],b=quote(n))
+d69 3
+d74 2
+a75 1
+assign("dS",dS,envir=environment(Pfun))
+d77 3
+a79 1
+assign("gpr",gpr,envir=environment(Pfun))
+d81 5
+d94 2
+a95 3
+x     <- initx(v,scenario)
+lll   <- Pfun(x,tt)
+vdot  <- lambda(tt)*(-v + cev(x,v,lll[["P"]],scenario))
+d101 4
+a104 4
+	m1 <- delta*scrG(x,tt)
+	m2 <- delta*scrG(x+m1/2,tt+delta/2)
+	m3 <- delta*scrG(x+m2/2,tt+delta/2)
+	m4 <- delta*scrG(x+m3,tt+delta)
+a106 1
+	lll  <- Pfun(x,tt)
+d108 1
+a108 1
+	vvdot <- vupdate(x,lll[["P"]],lll[["dPdx"]],lam.t)
+d121 2
+a122 2
+# Put away the optimal prices.  Note that in scenario 2
+# the entry x[[i]] is equal the function x_qj(t) where
+d124 1
+a124 1
+nc   <- if(scenario==2) qmax*(1+qmax)/2 else qmax
+d133 1
+a133 1
+if(scenario==2) class(x) <- c(class(x),"di.funlist"
+@
+
+
+1.4
+log
+@Changed the handling of the environment of xxx(); replaced
+local() by new.env().
+@
+text
+@d1 1
+a1 1
+xsolve.cont <- function(tmax,nstep,qmax,lambda,E,
+d15 8
+d24 2
+a25 2
+#           - E is an *expression* or *call* specifying the time-varying
+#             elasticity of demand
+d46 24
+a69 11
+# Differentiate the elastictity of demand, to the power
+# of n (this is for scenario 2 only).  Needs to be made
+# more versatile.
+pars <- attr(E,"parlist")
+E    <- E[[1]]
+E    <- substitute(a^b,list(a=E,b=quote(n)))
+xxx  <- deriv3(E,c("x","t"),function.arg=c("x","t","n"))
+environment(xxx) <- new.env()
+for(nm in names(pars)) assign(nm,pars[nm],envir=environment(xxx))
+assign("xxx",xxx,envir=environment(Pfun))
+assign("xxx",xxx,envir=environment(initx))
+d80 1
+a80 1
+x     <- initx(v)
+d82 1
+a82 1
+vdot  <- lambda(tt)*(-v + cev(x,v,lll[["P"]]))
+d109 4
+a112 1
+# Put away the optimal prices.
+d114 1
+a114 1
+                             nrow=nstep+1,ncol=qmax,byrow=TRUE))
+d121 1
+@
+
+
+1.3
+log
+@ Reorganized the multiplication of the probability and
+derivative matrices by the group size probabilities.
+Put gpr into the environment of Pfun and initx.
+@
+text
+@d44 2
+a45 1
+xxx  <- local(deriv3(E,c("x","t"),function.arg=c("x","t","n")))
+@
+
+
+1.2
+log
+@Changed the xxx function to have an n argument; this may
+be vector valued as long as ``x'' and ``t'' are scalars.
+Got rid of the incorrect x0 argument and put in a call
+to the (new) initx() function to provide correct initial
+values for x.
+@
+text
+@d43 1
+a43 1
+E    <- substitute((a^b)*c,list(a=E,b=quote(n),c=quote(gpr[n])))
+a45 1
+assign("gpr",gpr,envir=environment(xxx))
+d47 3
+d54 2
+a55 2
+tvec <- seq(0,tmax,length=nstep+1)
+tt   <- tvec[1]
+d57 4
+a60 4
+v    <- (1:qmax)*salval
+x    <- initx(v)
+lll  <- Pfun(x,tt)
+vdot <- lambda(tt)*(-v + cev(x,v,lll[["P"]]))
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 1
+xsolve.cont <- function(tmax,nstep,qmax,x0,lambda,E,
+d21 3
+d30 8
+d43 2
+a44 2
+E    <- substitute((a^b)*c,list(a=E,b=quote(n),c=quote(pi.n)))
+xxx  <- local(deriv3(E,c("x","t"),function.arg=c("x","t")))
+d46 1
+a48 9
+# Make sure the group size probabilities are OK.
+gpr <- if(is.function(gprob)) gprob(1:qmax) else gprob
+if(!is.numeric(gpr)) stop("Group size probabilities are not numeric.\n")
+if(any(gpr<0) | sum(gpr) > 1)
+	stop("Group size probabilities are not probabilities!\n")
+if(length(gpr) < qmax) gpr <- c(gpr,rep(0,qmax-length(gpr)))
+if(length(gpr) > qmax) gpr <- gpr[1:qmax]
+assign("gpr",gpr,envir=environment(Pfun))
+
+a51 1
+if(length(x0) > 1) x0 <- x0[1]
+d55 2
+a56 1
+x    <- rep(x0,qmax)
+a57 1
+v    <- (1:qmax)*salval
+@

@@ -1,0 +1,276 @@
+head	1.7;
+access;
+symbols;
+locks
+	rolf:1.7; strict;
+comment	@# @;
+
+
+1.7
+date	2012.01.09.00.19.09;	author rolf;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	2009.11.21.02.06.37;	author rolf;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	2009.11.19.07.29.16;	author rolf;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2009.10.31.23.52.50;	author rolf;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2009.10.31.23.02.11;	author rolf;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2009.09.19.23.50.56;	author rolf;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2009.09.19.22.08.20;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Calculate the initial boundary conditions for x from the
+``obvious'' ones for v.
+@
+
+
+1.7
+log
+@Changed interally defined utility functions named "foo" to
+have more evocative names; changed call to newt() to a call
+to .newt().
+@
+text
+@initx <- function (v,type) {
+#
+# Note that objects dS, gpr and alpha are assigned in the
+# environment of initx.
+#
+# Set up objective function according to type:
+    if(type=="sip") {
+	sip <- function(x, vi, gpr) {
+		q      <- length(vi)
+		vq     <- vi[q]
+		q      <- min(q,length(gpr))
+		rv     <- c(vi[q:1],0)[-1]
+		if(is.list(dS)) {
+			S      <- lapply(dS[1:q],function(f,x){f(x,0)},x=x)
+			dSdx   <- sapply(S,function(f){
+					attr(f,"gradient")[,"x"]
+				  })
+			d2Sdx2 <- sapply(S,function(f){
+					attr(f,"hessian")[,"x","x"]
+		                  })
+			S      <- unlist(S)
+		} else {
+			S      <- dS(x, 0, 1:q)
+			dSdx   <- attr(S, "gradient")[, "x"]
+			d2Sdx2 <- attr(S, "hessian")[, "x", "x"]
+		}
+		kappa  <- gpr[1:q]
+		kappa[q] <- kappa[q] + alpha*(1-sum(kappa))
+		fval     <- x * (sum((1:q) * dSdx * kappa)) +
+                            sum((rv * dSdx + (1:q)*S)*kappa) - 
+                            vq*sum(dSdx*kappa)
+		jacobian <- x * (sum((1:q) * d2Sdx2*kappa)) +
+                            sum((rv * d2Sdx2 + 2*(1:q)*dSdx)*kappa) - 
+                            vq*sum(d2Sdx2*kappa)
+		list(fval = fval, jacobian = jacobian)
+    	}
+    } else if(type=="dip") {
+	dip <- function(x,vqmj,vq,j) {
+		S <- if(is.list(dS)) dS[[j]](x,0) else dS(x,0,j)
+		dSdx <- attr(S,"gradient")[,"x"]
+		d2Sdx2 <- attr(S,"hessian")[,"x","x"]
+		fval <- (j*x + vqmj - vq)*dSdx + j*S
+		jacobian <- (x*j + vqmj + vq)*d2Sdx2 + 2*j*dSdx
+		list(fval=fval,jacobian=jacobian)
+	}
+    } else {
+	stop(paste("Type",type,"not recognized.\n"))
+    }
+
+qmax <- length(v)
+jmax <- length(gpr)
+
+# Solve according to type:
+    if(type=="sip") {
+	x <- numeric(qmax)
+	for (i in 1:qmax) {
+        	x[i] <- .newt(sip, v[1], vi = v[1:i], gpr=gpr)
+	}
+    } else {
+	N <- jmax*(qmax - jmax/2 + 0.5)
+	x <- numeric(N)
+	for(q in 1:qmax) {
+		vq   <- v[q]
+		jtop <- min(q,jmax)
+		for(j in 1:jtop) {
+			vqmj <- if(j<q) v[q-j] else 0
+			i <- qj2i(q,j,qmax)
+			x[i] <- .newt(dip,v[1],vqmj=vqmj,vq=vq,j=j)
+		}
+	}
+    }
+    x
+}
+@
+
+
+1.6
+log
+@Revised to take account of the fact that gpr may now have
+length < qmax.  Many hiccups along the way.  See log file
+for cev.R.
+@
+text
+@d8 1
+a8 1
+	foo <- function(x, vi, gpr) {
+d38 1
+a38 1
+	foo <- function(x,vqmj,vq,j) {
+d57 1
+a57 1
+        	x[i] <- newt(foo, v[1], vi = v[1:i], gpr=gpr)
+d68 1
+a68 1
+			x[i] <- newt(foo,v[1],vqmj=vqmj,vq=vq,j=j)
+@
+
+
+1.5
+log
+@Changed a d2Pdx2 to d2Sdx2; changed vmqj to vqmj.
+@
+text
+@d11 2
+a12 1
+		rv     <- rev(vi[-q])
+d29 1
+a29 1
+		fval     <- x * (sum((1:q) * dSdx)*kappa) +
+d32 1
+a32 1
+		jacobian <- x * (sum((1:q) * d2Sdx2)*kappa) +
+d51 1
+d60 1
+a60 1
+	N <- qmax*(1+qmax)/2
+d63 3
+a65 2
+		for(j in 1:q) {
+			vq <- v[q]
+@
+
+
+1.4
+log
+@Adjusted the comment about objects stored in the environment.
+@
+text
+@d32 1
+a32 1
+                            sum((rv * d2Pdx2 + 2*(1:q)*dSdx)*kappa) - 
+d42 1
+a42 1
+		jacobian <- (x*j + vmqj + vq)*d2Sdx2 + 2*j*dSdx
+@
+
+
+1.3
+log
+@Revised to cope with the two types of model (singly indexed
+prices and doubly indexed prices), and to use the price
+sensitivity function(s) directly (probability matrices
+having been eschewed).
+@
+text
+@d3 2
+a4 2
+# Objects gpr, dS, and alpha are present in the environment
+# of initx.
+@
+
+
+1.2
+log
+@Multiplied the probability matrices by the group size
+probabilities, which wasn't being done automatically
+any more.  Fixed up a typo (dpdx |--> dPdx). Made gpr
+an argument to foo().
+@
+text
+@d1 46
+a46 19
+initx <- function (v)
+{
+    foo <- function(x, vi, gpr) {
+        q      <- length(vi)
+        vi     <- c(0, vi)
+        P      <- xxx(x, 0, 1:q)
+        dPdx   <- attr(P, "gradient")[, "x"]
+        d2Pdx2 <- attr(P, "hessian")[, "x", "x"]
+	P      <- gpr[1:q]*P
+	dPdx   <- gpr[1:q]*dPdx
+	d2Pdx2 <- gpr[1:q]*d2Pdx2
+        P      <- c(1 - sum(P), P)
+        dPdx   <- c(0 - sum(dPdx), dPdx)
+        d2Pdx2 <- c(0 - sum(d2Pdx2), d2Pdx2)
+        fval <- x * (sum((0:q) * dPdx)) + sum(rev(vi) * dPdx) + 
+            sum((0:q) * P)
+        jacobian <- x * (sum((0:q) * d2Pdx2)) + sum(rev(vi) * 
+            d2Pdx2) + 2 * sum((0:q) * dPdx)
+        list(fval = fval, jacobian = jacobian)
+d48 20
+a67 4
+    qmax <- length(v)
+    x <- numeric(qmax)
+    for (i in 1:qmax) {
+        x[i] <- newt(foo, v[1], vi = v[1:i], gpr=gpr)
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 26
+a26 21
+initx <- function(v) {
+
+foo <- function(x,vi) {
+	q  <- length(vi)
+	vi <- c(0,vi)
+	P  <- xxx(x,0,1:q)
+	dPdx <- attr(P,"gradient")[,"x"]
+	d2Pdx2 <- attr(P,"hessian")[,"x","x"]
+	P <- c(1-sum(P),P)
+	dpdx <- c(0-sum(dPdx),dPdx)
+	fval <- x*(sum((0:q)*dPdx)) + sum(rev(vi)*dPdx) + sum((0:q)*P)
+	jacobian <-  x*(sum((0:q)*d2Pdx2)) + sum(rev(vi)*d2Pdx2) +
+                               2*sum((0:q)*dPdx)
+	list(fval=fval,jacobian=jacobian)
+}
+	qmax <- length(v)
+	x <- numeric(qmax)
+	for(i in 1:qmax) {
+		x[i] <- newt(foo,v[1],vi=v[1:i])
+	}
+	x
+@

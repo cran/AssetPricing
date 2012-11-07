@@ -1,0 +1,192 @@
+head	1.5;
+access;
+symbols;
+locks
+	rolf:1.5; strict;
+comment	@# @;
+
+
+1.5
+date	2012.11.06.21.15.18;	author rolf;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	2012.01.31.21.27.39;	author rolf;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2012.01.31.07.10.07;	author rolf;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2012.01.25.01.45.37;	author rolf;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2012.01.09.00.33.15;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Construct a price sensitivity function S(x,t) which is
+piecewise linear in x (price), in an automated fashion,
+checking for infelicities.
+@
+
+
+1.5
+log
+@The value of "tmax" is now assigned as an attribute
+rather than in the enviroment of the value returned.
+@
+text
+@buildS <- function(alpha,beta,kn,tmax) {
+    K <- length(kn)
+# Check that the resulting S function is continuous in x for all
+# t in c(0,tmax).
+    if(K > 1) {
+	OK <- rep(TRUE,K-1)
+        for(k in 1:(K-1)) {
+	    foo <- function(t) {
+		(alpha[[k]](t) - alpha[[k+1]](t) +
+                (beta[[k]](t) -  beta[[k+1]](t))*kn[k])^2
+            }
+            chk <- optimize(foo,c(0,tmax),maximum=TRUE,tol=1e-12)
+            if(chk$objective > .Machine$double.eps) OK[k] <- FALSE
+        }
+	if(any(!OK)) {
+		NOK <- !OK
+		nbad <- sum(NOK)
+		kbad <- paste((1:(K-1))[NOK],collapse=" ")
+		stop(paste("S is discontinuous in x at",
+                           ngettext(nbad,"knot","each of the knots"),
+			   kbad,"for some t.\n"))
+	}
+    }
+
+# Check that S(x,t) is *non-increasing* in x for all t,
+    OK <- rep(TRUE,K)
+    for(k in 1:K) {
+        chk <- optimize(beta[[k]],c(0,tmax),maximum=TRUE,tol=1e-12)
+        if(chk$objective > .Machine$double.eps) OK[k] <- FALSE
+    }
+    if(any(!OK)) {
+        NOK <- !OK
+        nbad <- sum(NOK)
+        kbad <- paste((1:(K-1))[NOK],collapse=" ")
+        stop(paste("The \"beta\"",ngettext(nbad,"function","functions"),
+            "numbered",kbad,ngettext(nbad,"is","are"),
+            "positive for some values of \"t\" \n",
+            "whence S(x,t) would fail to be non-increasing in \"x\".\n"))
+    }
+
+# Check that S(x,t) is *non-negative* for all t.
+    foo <- function(t) {
+        alpha[[K]](t) + beta[[K]](t)*kn[K]
+    }
+    chk <- optimize(foo,c(0,tmax),tol=1e-12)
+    if(chk$objective < -(.Machine$double.eps))
+        stop(paste("S(x,t) fails to be always non-negative and hence\n",
+                   "does not define a probability.\n"))
+
+# Check that S(0,t) = 1 for all t,
+    foo <- function(t) {
+        (alpha[[1]](t) - 1)^2
+    }
+    chk <- optimize(foo,c(0,tmax),maximum=TRUE,tol=1e-12)
+    if(chk$objective > .Machine$double.eps)
+        stop("S(0,t) is not equal to 1 for some \"t\".\n")
+
+# OK, we're good to go.
+    S <- function(x,t) {
+	K <- length(kn)
+	eps <- sqrt(.Machine$double.eps)
+        if(any(x < -eps | x > kn[K]+eps))
+		stop("At least one price value out of range.\n")
+        if(any(t < -eps | t > tmax+eps))
+		stop("At least one time value out of range.\n")
+        k <- cut(x,c(0,kn),include.lowest=TRUE,labels=1:K)
+        k <- as.numeric(levels(k)[k])
+        a <- lapply(k,function(i,alpha,t){alpha[[i]](t)},alpha=alpha,t=t)
+        b <- lapply(k,function(i,beta,t){beta[[i]](t)},beta=beta,t=t)
+        a <- matrix(unlist(a),nrow=length(x),byrow=TRUE)
+        b <- matrix(unlist(b),nrow=length(x),byrow=TRUE)
+        m <- a + b*x
+        if(any(dim(m)==1)) as.vector(m) else m
+    }
+    environment(S) <- new.env()
+    assign("alpha",alpha,envir=environment(S))
+    assign("beta",beta,envir=environment(S))
+    assign("kn",kn,envir=environment(S))
+    assign("tmax",tmax,envir=environment(S))
+    attr(S,"tmax") <- tmax
+    attr(S,"funtype") <- "pwl"
+    parent.env(environment(S)) <- new.env()
+    return(S)
+}
+@
+
+
+1.4
+log
+@Changed the test for values out of range to involve
+eps = sqrt(.Machine$double.eps).
+@
+text
+@d80 3
+@
+
+
+1.3
+log
+@Changed beta[[k]] to beta[[K]] (!!!) in check for
+non-negativity; changed " > -(.Machine..." to
+" < -(.Machine..." (duhhhh!).
+@
+text
+@d61 2
+a62 1
+        if(any(x < 0 | x > kn[K]))
+d64 1
+a64 1
+        if(any(t < 0 | t > tmax))
+@
+
+
+1.2
+log
+@Re-worded some comments.  Changed K to be calculated as
+length(kn) rather than being passed through in the environment
+of S.
+@
+text
+@d43 1
+a43 1
+        alpha[[K]](t) + beta[[k]](t)*kn[K]
+d46 1
+a46 1
+    if(chk$objective > -(.Machine$double.eps))
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d25 1
+a25 1
+# Check that S(x,t) will be *non-increasing* in x for all t,
+d41 1
+a41 2
+# Check that S(x,t) will be *non-negative* for all t,
+# is non-negative, and that S(0,t) = 1 for all t.
+d60 1
+a77 1
+    assign("K",K,envir=environment(S))
+@

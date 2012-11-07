@@ -1,0 +1,216 @@
+head	1.4;
+access;
+symbols;
+locks
+	rolf:1.4; strict;
+comment	@# @;
+
+
+1.4
+date	2012.11.06.21.18.00;	author rolf;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	2012.01.31.21.32.50;	author rolf;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	2012.01.25.01.49.10;	author rolf;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2012.01.09.00.34.38;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Utility function to tidy up and put away the numerical solutions
+to the differential equations in the form of spline functions.
+@
+
+
+1.4
+log
+@The "jmax" attribute is now assigned (as 1) for "v" and "vdot".
+@
+text
+@putAway <- function(tstor,type,jmax,qmax,tmax,discrete,prices=NULL) {
+#
+# Equation solved; now do a bunch of housekeeping to store
+# the results in a convenient manner.
+
+# Put away the prices.
+#
+# If putAway() is being called by vsolve() then these prices are
+# *not* necessarily optimal and tstor$x is already an object of
+# class "flap".  In this case "x" is extracted (nothing needs
+# to be done to it) and the other component of tstor (also called
+# "tstor") is extracted so that the "v" and "vdot" dot values can
+# be processed "in the usual way".  Otherwise the "x" values are
+# processed (from tstor) in the usual way.
+#
+# Note that if type == "dip" then the entry x[[i]] is equal to
+# the function x_qj(t) where i = (j-1)*(qmax - j/2) + q.
+#
+# If type == "sip" then at this stage jmax is effectively 1, whatever
+# its `real' value.  At this stage jmax relates only to the indexing
+# of the entries of the prices "x".  (Previously the value of jmax had
+# an impact on the calculation of expected values of stocks.)  If type
+# is equal to "sip" then the index "i" of the prices simply runs from
+# 1 to qmax just as it would if jmax were equal to 1.
+if(type=="sip") jmax <- 1
+
+if(inherits(tstor$x,"flap")) {
+    x     <- tstor$x
+    tstor <- tstor$tstor
+    nsp1  <- length(tstor)
+    tvec  <- seq(0,tmax,length=nsp1)
+} else {
+    nsp1 <- length(tstor)
+    tvec <- seq(0,tmax,length=nsp1)
+    nc   <- if(type=="dip") jmax*(qmax - (jmax-1)/2) else qmax
+    xx   <- as.data.frame(matrix(unlist(lapply(tstor,function(z){z$x})),
+                           ncol=nc,byrow=TRUE))
+    if(discrete) {
+	x <- lapply(xx,function(x,t){approxfun(x=t,y=x,method="constant",
+                                yleft=NA,yright=NA)},t=tvec)
+	x <- lapply(x,a2sf,tt=tvec)
+    } else x <- lapply(xx,function(x,t){splinefun(x=t,y=x)},t=tvec)
+
+    ylim <- range(xx)
+    attr(x,'tlim') <- c(0,tmax)
+    attr(x,'ylim') <- ylim
+    attr(x,'qmax') <- qmax
+    attr(x,'jmax') <- jmax
+    if(!is.null(prices)) attr(x,'prices') <- prices
+    comment(x) <- "Optimal prices."
+    class(x) <- "flap"
+    if(discrete) class(x) <- c("flap","pwc.flap")  # pwc <--> piecewise constant.
+    if(type=="dip") class(x) <- c(class(x),"di.flap") # di  <--> doubly indexed.
+}
+
+# Put away the optimal expected values.
+vv   <- as.data.frame(matrix(unlist(lapply(tstor,function(z){z$v})),
+                             ncol=qmax,byrow=TRUE))
+v    <- lapply(vv,function(x,t){splinefun(x=t,y=x)},t=tvec)
+ylim <- range(vv)
+attr(v,'tlim') <- c(0,tmax)
+attr(v,'ylim') <- ylim
+attr(v,'qmax') <- qmax
+attr(v,'jmax') <- 1
+class(v) <- "flap"
+
+# Put away the derivatives of the optimal expected values.
+vd   <- as.data.frame(matrix(unlist(lapply(tstor,function(z){z$vdot})),
+                             ncol=qmax,byrow=TRUE))
+vdot <- lapply(vd,function(x,t){splinefun(x=t,y=x)},t=tvec)
+ylim <- range(vd)
+attr(vdot,'tlim') <- c(0,tmax)
+attr(vdot,'ylim') <- ylim
+attr(vdot,'qmax') <- qmax
+attr(vdot,'jmax') <- 1
+class(vdot) <- "flap"
+rslt <- list(x=x,v=v,vdot=vdot)
+rslt
+}
+@
+
+
+1.3
+log
+@Made adjustments to handle the fact that putAway() may now
+be called by vsolve(), in which case "x" is simply extracted
+from "tstor" and passed on as is, without processing.
+@
+text
+@d6 10
+a15 3
+# Put away the prices.  If putAway() is being called by vsolve() then
+# these prices are *not* necessarily optimal and tstor$x is already an
+# object of class "funlist" and so nothing needs to be doen.  Otherwise
+d18 8
+d27 2
+a28 2
+if(inherits(tstor$x,"funlist")) {
+    x <- tstor$x
+d35 2
+a36 3
+    nc <- if(type=="dip") jmax*(qmax - (jmax-1)/2) else qmax
+
+    xx <- as.data.frame(matrix(unlist(lapply(tstor,function(z){z$x})),
+d45 1
+a45 1
+    attr(x,'xlim') <- c(0,tmax)
+d51 3
+a53 3
+    class(x) <- "funlist"
+    if(discrete) class(x) <- c("funlist","pwc.funlist")  # pwc <--> piecewise constant.
+    if(type=="dip") class(x) <- c(class(x),"di.funlist") # di  <--> doubly indexed.
+d61 1
+a61 1
+attr(v,'xlim') <- c(0,tmax)
+d63 3
+a65 1
+class(v) <- "funlist"
+d72 1
+a72 1
+attr(vdot,'xlim') <- c(0,tmax)
+d74 5
+a78 2
+class(vdot) <- "funlist"
+list(x=x,v=v,vdot=vdot)
+@
+
+
+1.2
+log
+@Added a "prices" argument, and added a "prices" attribute to "x"
+in the discrete price case.  Adjusted a comment.
+@
+text
+@d6 17
+a22 5
+# Put away the optimal prices.  Note that if type == "dip"
+# then the entry x[[i]] is equal to the function x_qj(t) where
+# i = (j-1)*(qmax - j/2) + q 
+nc <- if(type=="dip") jmax*(qmax - (jmax-1)/2) else qmax
+xx <- as.data.frame(matrix(unlist(lapply(tstor,function(z){z$x})),
+d24 1
+a24 2
+tvec <- seq(0,tmax,length=nrow(xx))
+if(discrete) {
+d28 1
+a28 1
+} else x <- lapply(xx,function(x,t){splinefun(x=t,y=x)},t=tvec)
+d30 11
+a40 10
+ylim <- range(xx)
+attr(x,'xlim') <- c(0,tmax)
+attr(x,'ylim') <- ylim
+attr(x,'qmax') <- qmax
+attr(x,'jmax') <- jmax
+if(!is.null(prices)) attr(x,'prices') <- prices
+comment(x) <- "Optimal prices."
+class(x) <- "funlist"
+if(discrete) class(x) <- c("funlist","pwc.funlist")  # pwc <--> piecewise constant.
+if(type=="dip") class(x) <- c(class(x),"di.funlist") # di  <--> doubly indexed.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d1 1
+a1 1
+putAway <- function(tstor,type,jmax,qmax,tmax,discrete) {
+d24 1
+d27 1
+a27 1
+if(discrete) class(x) <- c("funlist","pwc.funlist")   # pwc <--> piecewise constant.
+@
