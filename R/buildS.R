@@ -79,6 +79,6 @@ buildS <- function(alpha,beta,kn,tmax) {
     assign("tmax",tmax,envir=environment(S))
     attr(S,"tmax") <- tmax
     attr(S,"funtype") <- "pwl"
-    parent.env(environment(S)) <- new.env()
+    parent.env(environment(S)) <- globalenv()
     return(S)
 }

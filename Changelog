@@ -1,4 +1,50 @@
 
+Version 0.0-10
+
+* Submitted to CRAN 01/01/13.
+
+* Changed call to .onLoad() to be a call to .onAttach() in
+  the First.R file.
+
+* Added a file declareGlobals.R which contains a call to
+  globalVariables() which keeps R CMD check from issuing
+  notes to the effect of "no visible binding for ...".
+
+Version 0.0-9
+
+* Submitted to CRAN 30/12/12.  Got complaint from the CRAN
+  maintainers with respect to a couple of issues (see above)
+  whence version 0.0-9 was never installed on CRAN.
+
+* Reorganized the argument structure of plot.flap(); removed
+  the "aao" argument --- its use is obviated by the newer
+  "groups" argument.
+
+* Made the default behaviour of plot.flap() be such that a
+  *single* group of traces is produced.  This behaviour pertains
+  when "groups" is unspecified or if the "group" column of "groups"
+  is unspecified.  This behaviour is consistent with the former
+  behaviour which arose when "aao" was set equal to TRUE.
+
+* Did some corresponding (and other) revision of the help for
+  plot.flap().
+
+* Cosmetic change to code of turnPts() --- to make the code
+  consistent with the (more perspicuous) notation in the paper
+  about to be submitted.
+
+* Re-ordered the entries of this file under "Version 0.0-7" so
+  that the most recent change is listed first. (9 November 2012)
+
+* Changed buildS() to assign the parent environment of S
+  as globalenv() rather than new.env().  This keeps R from
+  popping up a message "AssetPricing 0.0-9" when a workspace,
+  in which a function returned by buildS() has been saved,
+  is loaded. (9 November 2012).
+
+* Corrected a bunch of spelling errors in the help files.
+  (8 November 2012).
+
 Version 0.0-8
 
 * Changed the examples for xsolve() and vsolve() to make
@@ -7,48 +53,23 @@ Version 0.0-8
 
 Version 0.0-7 (Initial submission to CRAN, 7 November 2012).
 
-* Changed the name "parlist" to "parvec" to avoid confusion
-  (since this object is a *vector* and NOT a list).
+* Adjusted vsolve() to throw an error if "jmax", as determined
+  from "gprob" is greater than the "jmax" attribute of "x",
+  and double indexing is in effect (i.e. "x" inherits from
+  "di.flap").
 
-* Made vsolve() able to cope with discrete prices (and with
-  pwl price sensitivity functions.)
+* Adjusted buildS() so that "tmax" is an attribute of the
+  returned value, rather than being assigned in the environment
+  of the returned value.  Made the corresponding adjustment
+  to the way that xsolve.pwl() accesses "tmax".
 
-* Re-ordered the arguments of vsolve(), xsolve(), xsolve.cont(),
-  xsolve.disc() and xsolve.pwl().
+* Adjusted xsolve() and vsolve() to allow lambda to be a scalar
+  constant as well as a function.
 
-* Made argument tmax of vsolve() default to the upper limit
-  of the "t"-axis associated with the argument "x".
+* Re-wrote the comments in scrF.
 
-* Made argument "alpha" default to 1 when jmax=1 (so that it
-  needn't be specified when jmax=1).
-
-* Made argument "type" default to "sip".
-
-* Changed the name of an attribute of "funlist" objects
-  from "xlim" to "tlim" (since the relevant variable is
-  always referred to as "t").
-
-* Re-wrote many comments in the code.
-
-* Created a new function findSolType() to determine the
-  solution type --- cont, disc, or pwl.
-
-* Renamed the class "funlist" to "flap" (Function List
-  for Asset Pricing).
-
-* Re-wrote plot.flap() to handling "doubly indexed" price
-  arrays properly.
-
-* Replaced the argument "index" by groups to provide for
-  plotting of *groups* of traces (when "aao" is FALSE).
-
-* Changed the way "gloss" and "glind" are handled.
-
-* Adjusted putAway() in respect of the way the "jmax" attribute
-  is handled.
-
-* Added new argument "main.panel" and changed the handling
-  of "main".
+* Changed cev() to make use of "maxFac" and "xback" when
+  doing discrete maximization over price.
 
 * Added argument "maxFac" to xsolve; used by xsolve.disc()
   and xsolve.pwl() in choosing a maximum out of a finite
@@ -60,23 +81,48 @@ Version 0.0-7 (Initial submission to CRAN, 7 November 2012).
   environment of cev() by xsolve.pwl()) for use in selecting
   the appropriate "maximum" in a way which enhances continuity.
 
-* Changed cev() to make use of "maxFac" and "xback" when
-  doing discrete maximization over price.
+* Added new argument "main.panel" and changed the handling
+  of "main".
 
-* Re-wrote the comments in scrF.
+* Adjusted putAway() in respect of the way the "jmax" attribute
+  is handled.
 
-* Adjusted xsolve() and vsolve() to allow lambda to be a scalar
-  constant as well as a function.
+* Changed the way "gloss" and "glind" are handled.
 
-* Adjusted buildS() so that "tmax" is an attribute of the
-  returned value, rather than being assigned in the environment
-  of the returned value.  Made the corresponding adjustment
-  to the way that xsolve.pwl() accesses "tmax".
+* Replaced the argument "index" by groups to provide for
+  plotting of *groups* of traces (when "aao" is FALSE).
 
-* Adjusted vsolve() to throw an error if "jmax", as determined
-  from "gprob" is greater than the "jmax" attribute of "x",
-  and double indexing is in effect (i.e. "x" inherits from
-  "di.flap").
+* Re-wrote plot.flap() to handling "doubly indexed" price
+  arrays properly.
+
+* Renamed the class "funlist" to "flap" (Function List
+  for Asset Pricing).
+
+* Created a new function findSolType() to determine the
+  solution type --- cont, disc, or pwl.
+
+* Re-wrote many comments in the code.
+
+* Changed the name of an attribute of "funlist" objects
+  from "xlim" to "tlim" (since the relevant variable is
+  always referred to as "t").
+
+* Made argument "type" default to "sip".
+
+* Made argument "alpha" default to 1 when jmax=1 (so that it
+  needn't be specified when jmax=1).
+
+* Made argument tmax of vsolve() default to the upper limit
+  of the "t"-axis associated with the argument "x".
+
+* Re-ordered the arguments of vsolve(), xsolve(), xsolve.cont(),
+  xsolve.disc() and xsolve.pwl().
+
+* Made vsolve() able to cope with discrete prices (and with
+  pwl price sensitivity functions.)
+
+* Changed the name "parlist" to "parvec" to avoid confusion
+  (since this object is a *vector* and NOT a list).
 
 Version 0.0-6
 

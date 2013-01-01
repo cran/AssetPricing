@@ -1,10 +1,15 @@
-head	1.3;
+head	1.4;
 access;
 symbols;
 locks
-	rolf:1.3; strict;
+	rolf:1.4; strict;
 comment	@# @;
 
+
+1.4
+date	2012.11.20.02.37.56;	author rolf;	state Exp;
+branches;
+next	1.3;
 
 1.3
 date	2012.01.31.07.33.02;	author rolf;	state Exp;
@@ -29,25 +34,25 @@ there being an arrival at time "t") of stock of goods.
 @
 
 
-1.3
+1.4
 log
-@Dropped a spurious line consisting "   ply".
+@Cosmetic change; running index changed from "j" to "r".
 @
 text
 @turnPts <- function(a,b,v,Kpa,xlo,xhi) {
 #
 # Construct the polynomial.
     q <- length(v)
-    jmax  <- suppressWarnings(max(which(Kpa > 0)))
-    if(jmax < 1) return(as.polynomial(0))
-    Kpa <- Kpa[1:jmax]
+    rmax  <- suppressWarnings(max(which(Kpa > 0)))
+    if(rmax < 1) return(as.polynomial(0))
+    Kpa <- Kpa[1:rmax]
     vq <- v[q]
     ply <- 0
-    for(j in 1:jmax) {
-        vqmj <- if(j < q) v[q-j] else 0
-        p1   <- polynomial(c(vqmj-vq,j))
+    for(r in 1:rmax) {
+        vqmr <- if(r < q) v[q-r] else 0
+        p1   <- polynomial(c(vqmr-vq,r))
         p2   <- polynomial(c(a,b))
-        ply  <- ply + Kpa[j]*p1*p2^j
+        ply  <- ply + Kpa[r]*p1*p2^r
     }
 #
 # Take its derivative.
@@ -63,6 +68,27 @@ text
     ok   <- xlo <= zzz & zzz <= xhi
     zzz[ok]
 }
+@
+
+
+1.3
+log
+@Dropped a spurious line consisting "   ply".
+@
+text
+@d5 3
+a7 3
+    jmax  <- suppressWarnings(max(which(Kpa > 0)))
+    if(jmax < 1) return(as.polynomial(0))
+    Kpa <- Kpa[1:jmax]
+d10 3
+a12 3
+    for(j in 1:jmax) {
+        vqmj <- if(j < q) v[q-j] else 0
+        p1   <- polynomial(c(vqmj-vq,j))
+d14 1
+a14 1
+        ply  <- ply + Kpa[j]*p1*p2^j
 @
 
 

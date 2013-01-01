@@ -50,7 +50,7 @@ xsolve.pwl(S,lambda,gprob,tmax,qmax,nstep,type,
                            alpha,salval,maxFac,nverb)
 }
 \details{
-  These functions are auxilliary and are not intended to be called by
+  These functions are auxiliary and are not intended to be called by
   the user.
 % The function ".newt" is a copy of "newt" from my personal "misc"
 % package to which yer average user will not have access.

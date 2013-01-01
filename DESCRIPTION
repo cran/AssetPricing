@@ -1,6 +1,6 @@
 Package: AssetPricing
-Version: 0.0-8
-Date: 2012-11-07
+Version: 0.0-10
+Date: 2013-01-01
 Title: Optimal pricing of assets with fixed expiry date.
 Author: Rolf Turner <r.turner@auckland.ac.nz>
 Maintainer: Rolf Turner <r.turner@auckland.ac.nz>
@@ -15,6 +15,6 @@ Description: Calculates the optimal price of assets (such as airline
         numerically via the method of Runge-Kutta.
 License: GPL (>= 2)
 URL: http://www.math.unb.ca/~rolf/
-Packaged: 2012-11-07 06:54:34 UTC; rolf
+Packaged: 2012-12-31 23:12:53 UTC; rolf
 Repository: CRAN
-Date/Publication: 2012-11-07 07:44:28
+Date/Publication: 2013-01-01 07:38:33

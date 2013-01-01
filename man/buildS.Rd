@@ -59,7 +59,7 @@
    an item offered at price \code{x}.
 }
 \references{
-Baneree, P. K. and Turner, T. R.
+Banerjee, P. K. and Turner, T. R.
 A flexible model for the pricing of perishable assets.
 Omega, vol. 40, number 5, 2012, pages 533 -- 540,
 doi: 10.1016/j.omega.2011.10.001.

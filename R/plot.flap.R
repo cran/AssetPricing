@@ -1,12 +1,8 @@
 plot.flap <- function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
                       xlab=NULL,ylab=NULL,main=NULL,main.panel=NULL,
-                      groups=NULL,add=FALSE,aao=TRUE,gloss=FALSE,glind=NULL,
+                      groups=NULL,add=FALSE,gloss=FALSE,glind=NULL,
                       extend=0.3,col.gloss=1,cex.gloss=0.8,mfrow=NULL,...) {
 #
-# Argument ``aao'' means ``all at once''.
-#
-    if(add & !aao) stop(paste("If \"all at once\" is FALSE you",
-                              "cannot add to an existing plot.\n"))
     qmax <- attr(x,"qmax")
     jmax <- attr(x,"jmax")
     if(is.null(jmax)) jmax <- 1
@@ -15,19 +11,23 @@ plot.flap <- function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
 # running from 1 to length(x).  Otherwise make sure its entries
 # are sensible.
     if(is.null(groups)) {
-        groups <- cbind(group=1:length(x),as.data.frame(i2qj(1:length(x),qmax,jmax)))
+        groups <- cbind(group=1,as.data.frame(i2qj(1:length(x),qmax,jmax)))
     } else {
-         if(!is.data.frame(groups) || !ncol(groups)%in%(2:3))
-             stop("Argument \"groups\" must be a data frame with 2 or 3 columns.\n")
-         if(!all(names(groups)%in%c("group","q","j")))
-             stop("Names of \"groups\" argument are not right.\n")
-         if(ncol(groups)==2) {
-             if(!isTRUE(all.equal(sort(names(groups)),c("group","q"))))
-                 stop("Names of 2-column \"groups\" should be \"group\" and \"q\".\n")
-             if(jmax > 1) stop(paste("Column \"j\" of \"groups\" must be specified\n",
-                                     "when \"jmax\" is greater than 1.\n"))
-             groups$j <- 1
-         }
+        if(!is.data.frame(groups) || ncol(groups) > 3)
+            stop("Argument \"groups\" must be a data frame with 1, 2 or 3 columns.\n")
+        if(!all(names(groups)%in%c("group","q","j")))
+            stop("Names of \"groups\" argument are not right.\n")
+        if(ncol(groups)==1) {
+            if(names(groups) != "q")
+                stop("The column name of a 1-column \"groups\" should be \"q\".\n")
+        }
+        if(!("j" %in% names(groups))) {
+            if(jmax > 1)
+                stop(paste("Column \"j\" of \"groups\" must be specified\n",
+                           "when \"jmax\" is greater than 1.\n"))
+            groups$j <- 1
+        }
+        if(!("group" %in% names(groups))) groups$group <- 1:nrow(groups)
    }
       
 # If jmax is 1 make sure that all j-entries of "groups" are equal to 1.
@@ -44,6 +44,9 @@ plot.flap <- function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
         stop(paste("Some entries of the \"q\" or \"j\" columns\n",
                    "of \"groups\" are out of range.\n"))
     ng <- length(unique(groups$group))
+
+    if(add & ng > 1) stop(paste("Cannot add to an existing plot when there\n",
+                                "is more than one group of traces.\n"))
 
 # Check on whether "gloss" should be done, and if so, should it be made
 # (or is it given).
@@ -83,12 +86,12 @@ plot.flap <- function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
 # Set up multiway array of plots.
     if(!add) {
         if(is.null(mfrow)) {
-            if(ng==1|aao) mfrow <- c(1,1)
+            if(ng==1) mfrow <- c(1,1)
             else if(2 <= ng & ng <= 4) mfrow <- c(2,2)
             else mfrow <- c(3,2)
         }
         np <- prod(mfrow)
-        oma <- if(!(aao | is.null(main))) c(0,0,2,0) else rep(0,4)
+        oma <- if(ng > 1 & !is.null(main)) c(0,0,2,0) else rep(0,4)
         opar <- par(mfrow=mfrow, oma=oma)
         on.exit(par(opar))
 
@@ -96,7 +99,7 @@ plot.flap <- function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
         if(is.null(xlab)) xlab <- ""
         if(is.null(ylab)) ylab <- ""
         if(is.null(main)) main <- ""
-        if(!aao) {
+        if(ng > 1) {
             if(is.null(main.panel)) {
                 main.panel <- paste("group",1:ng)
             } else if(length(main.panel) == 1) {
@@ -125,10 +128,10 @@ plot.flap <- function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
         }
 
 # Set up line types and colours.
-    if(is.null(lty)) lty <- 1
+    if(is.null(lty))  lty  <- 1
     if(is.null(cols)) cols <- 1
-    if(length(lty)==1) lty <- rep(lty,length.out=nrow(groups))
-    if(length(cols)==1) cols <- rep(cols,length.out=nrow(groups))
+    lty  <- rep(lty,length.out=nrow(groups))
+    cols <- rep(cols,length.out=nrow(groups))
 
 # A couple of auxiliary constructs ...
     startPlot <- function(xlim,xlime,ylim,xlab,ylab,main) {
@@ -141,12 +144,12 @@ plot.flap <- function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
     stride <- inherits(x,"pwc.flap")
 
 # Are you ready boots? Start plotting!
-    if(aao & !add) {
+    if(ng==1 & !add) {
             startPlot(xlim=xlim,xlime=xlime,ylim=ylim,
                       xlab=xlab,ylab=ylab,main=main)
     }
     for(kg in 1:ng) {
-        if(!aao) {
+        if(ng > 1) {
             startPlot(xlim=xlim,xlime=xlime,ylim=ylim,
                       xlab=xlab,ylab=ylab,main=main.panel[kg])
         }
@@ -171,9 +174,12 @@ plot.flap <- function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
                 text(x0,xi,labels=lbl,adj=0,cex=cex.gloss,col=col.gloss)
             }
         }
-        if(!add && (kg %% np == 0 | kg == ng))
-            mtext(outer=TRUE,side=3,line=0,text=main,cex=1.2,font=2)
-        if(!aao & dev.interactive() && (kg < ng & kg%%np == 0)) readline('Go? ')
+        if(ng > 1) {
+            if(kg %% np == 0 | kg == ng) {
+                mtext(outer=TRUE,side=3,line=0,text=main,cex=1.2,font=2)
+            }
+            if(dev.interactive() & kg < ng & kg%%np == 0) readline('Go? ')
+        }
     }
     invisible()
 }

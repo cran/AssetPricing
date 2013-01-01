@@ -98,12 +98,12 @@
   differential equations for the expected value of the stock is
   solved, with the optimal price being determined at each step by
   maximizing over an appropriate finite discrete set. The systems
-  of differential equations are treated in vectorized form and are
+  of differential equations are treated in vectorised form and are
   solved via the method of Runge-Kutta.
 
   The components of the argument \code{S} should be provided as
   expressions when the price sensitivity functions are assumed to
-  be smooth, and these should be amenble to differentiation with
+  be smooth, and these should be amenable to differentiation with
   respect to \code{x} and \code{t} via the function \code{deriv3()}.
 
   Note that in general the expression or expressions will depend upon
@@ -151,7 +151,7 @@
   there are a number of such values that are numerically equal).
   Using different values of \code{maxFac} may have an impact on
   the optimal price functions but will generally have little or no
-  discernable impact on the corresponding expected values of stocks.
+  discernible impact on the corresponding expected values of stocks.
 
   In the case where argument \code{S} is a piecewise linear
   price sensitivity function, the argument \code{tmax} is, if not
@@ -203,7 +203,7 @@ A list with components:
 }
 }
 \references{
-Baneree, P. K. and Turner, T. R.
+Banerjee, P. K. and Turner, T. R.
 A flexible model for the pricing of perishable assets.
 Omega, vol. 40, number 5, 2012, pages 533 -- 540,
 doi: 10.1016/j.omega.2011.10.001.

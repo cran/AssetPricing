@@ -1,10 +1,15 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks
-	rolf:1.5; strict;
+	rolf:1.6; strict;
 comment	@# @;
 
+
+1.6
+date	2012.11.20.02.40.45;	author rolf;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2012.11.06.21.15.18;	author rolf;	state Exp;
@@ -39,10 +44,12 @@ checking for infelicities.
 @
 
 
-1.5
+1.6
 log
-@The value of "tmax" is now assigned as an attribute
-rather than in the enviroment of the value returned.
+@Made the parent environment of "S" equal to globalenv()
+rather than new.env().  Prevents the popping up of a
+namespace message when a saved workspace containing such
+an "S" function is loaded.
 @
 text
 @buildS <- function(alpha,beta,kn,tmax) {
@@ -126,9 +133,21 @@ text
     assign("tmax",tmax,envir=environment(S))
     attr(S,"tmax") <- tmax
     attr(S,"funtype") <- "pwl"
-    parent.env(environment(S)) <- new.env()
+    parent.env(environment(S)) <- globalenv()
     return(S)
 }
+@
+
+
+1.5
+log
+@The value of "tmax" is now assigned as an attribute
+rather than in the enviroment of the value returned.
+@
+text
+@d82 1
+a82 1
+    parent.env(environment(S)) <- new.env()
 @
 
 

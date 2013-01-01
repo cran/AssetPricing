@@ -2,16 +2,16 @@ turnPts <- function(a,b,v,Kpa,xlo,xhi) {
 #
 # Construct the polynomial.
     q <- length(v)
-    jmax  <- suppressWarnings(max(which(Kpa > 0)))
-    if(jmax < 1) return(as.polynomial(0))
-    Kpa <- Kpa[1:jmax]
+    rmax  <- suppressWarnings(max(which(Kpa > 0)))
+    if(rmax < 1) return(as.polynomial(0))
+    Kpa <- Kpa[1:rmax]
     vq <- v[q]
     ply <- 0
-    for(j in 1:jmax) {
-        vqmj <- if(j < q) v[q-j] else 0
-        p1   <- polynomial(c(vqmj-vq,j))
+    for(r in 1:rmax) {
+        vqmr <- if(r < q) v[q-r] else 0
+        p1   <- polynomial(c(vqmr-vq,r))
         p2   <- polynomial(c(a,b))
-        ply  <- ply + Kpa[j]*p1*p2^j
+        ply  <- ply + Kpa[r]*p1*p2^r
     }
 #
 # Take its derivative.
