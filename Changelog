@@ -1,4 +1,12 @@
 
+Version 0.0-11
+
+* Submitted to CRAN 02/11/13
+
+* Removed a directory "man.save" from the top level of the package.
+  This directory was an unnecessary remnant of the development
+  process.
+
 Version 0.0-10
 
 * Submitted to CRAN 01/01/13.

@@ -1,5 +1,5 @@
-0631fa5daf321752b855466d7aca5ad0 *Changelog
-1e4c8d04173fa028fb131ae4120206f1 *DESCRIPTION
+0a47b51eadea5426fca0830b110c9d14 *Changelog
+e10c2a4b4c95ee7935ee0e79791f5294 *DESCRIPTION
 67576575fbdecf8dbdbb0461f7f784de *NAMESPACE
 a6603eeac77b3c44cfb5384448d4d9a0 *R/First.R
 f7a795560ce10a448e4e8f1196804010 *R/RCS/First.R,v
@@ -55,10 +55,6 @@ ffc95eb9ea2139b32ca738aa09411a1b *R/xsolve.cont.R
 489cc77594a637fcdc28a4670b212804 *inst/coa
 364d50d5ff1bf3ef7f8aacf6c9dd10c5 *inst/optimNote.tex
 b9cd3aafc999feec60d97044e28c00da *inst/plot.flap.R.old
-e794a2f4fe8bda4be6e0685342d29788 *man.save/AssetPricing-internal.Rd
-6f3339d49bacb944272d7cc55f5fb5e0 *man.save/plot.funlist.Rd
-04e3f723c61aaa0ec3516a9d918c7cfc *man.save/vsolve.Rd
-e65bd5201d23d83388ef0441717cf4fb *man.save/xsolve.cont.Rd
 e2bde2602a5122838dee1abdfa7fea0f *man/AssetPricing-internal.Rd
 b2dc42234120e6b5c8b80e79195be93b *man/buildS.Rd
 4c1fb279a186d0a0fe955b71bdbacd4c *man/plot.flap.Rd
