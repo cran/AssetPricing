@@ -1,14 +1,13 @@
-xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nstep,type,
-                        alpha,salval,nverb) {
+xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nout,type,
+                        alpha,salval,method) {
 #
 # Function xsolve.cont to solve numerically the system of d.e.'s for
 # the optimum price x_q(t) of an item of stock when there are q
 # items remaining at time t.  Of necessity the price x_q(t) must be
-# ***continuous*** for this function to make sense.  The procedure uses
-# the method of Runge-Kutta.  (Note that time is residual time, i.e.
-# the time remaining until the expiry date, and hence decreases as
-# the expiry date approaches. However we solve forward in time,
-# starting from the expiry date, i.e. t=0.
+# ***continuous*** for this function to make sense.  Note that time
+# is residual time, i.e.  the time remaining until the expiry date,
+# and hence decreases as the expiry date approaches. However we
+# solve forward in time, starting from the expiry date, i.e. t=0.
 #
 # Note that
 #           - S is an *expression* or *call*, or a *list* of such,
@@ -21,15 +20,14 @@ xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nstep,type,
 #             we are solving the differential equation
 #           - qmax is the initial number of items for sale, tmax
 #             time units from the expiry date
-#           - nstep is the number of Runge-Kutta steps to take
-#             in the solution process
+#           - nout is the number of time points at which the values of
+#             the solution are required. These points will be equispaced
+#             on [0,tmax]
 #           - type is the specification of the model type, either ``sip''
 #             (singly indexed prices) or ``dip'' (doubly indexed prices).
 #           - salval is the ``salvage value'' of an item of stock when
 #             the expiry date or deadline is reached; used to determine
 #             the initial conditions.
-#           - nverb specifies how often "progress reports" should be
-#             printed out.
 #
 # Note that ``scrG'' means ``script G function''; the (vector) d.e.
 # that we are solving is
@@ -108,30 +106,11 @@ xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nstep,type,
 #
     assign("type",type,envir=environment(scrG))
 
-# Set thing up for doing Runge-Kutta.
-    delta <- tmax/nstep
-    tstor <- list()
-    tvec  <- seq(0,tmax,length=nstep+1)
-    tt    <- tvec[1]
+# Set up the vector of "out" times and initialize.
+    tvec  <- seq(0,tmax,length=nout)
     v     <- (1:qmax)*salval
     x     <- initx(v,type)
-    vdot  <- lambda(tt)*(-v + cev(x,tt,v,type))
-    tstor[[1]] <- list(x=x,v=v,vdot=vdot)
-
-# Do the Runge-Kutta thing.
-    for(i in 1:nstep) {
-    	m1 <- delta*scrG(x,tt)
-    	m2 <- delta*scrG(x+m1/2,tt+delta/2)
-    	m3 <- delta*scrG(x+m2/2,tt+delta/2)
-    	m4 <- delta*scrG(x+m3,tt+delta)
-    	x <- x + (m1+2*m2+2*m3+m4)/6
-    	tt <- tvec[i+1]
-    	vvdot <- vupdate(x,tt,type)
-    	tstor[[i+1]] <- list(x=x,v=vvdot[["v"]],vdot=vvdot[["vdot"]])
-    	if(nverb > 0 & i%%nverb == 0) cat(i,"")
-    	if(nverb > 0 & i%%(10*nverb) == 0) cat("\n")
-    }
-        if(nverb >= 0 & nstep%%10 != 0) cat("\n")
-
-    putAway(tstor,type,jmax,qmax,tmax,discrete=FALSE)
+# Solve the differential equation.
+odeRslt <- ode(x,tvec,scrG,parms=NULL,method=method)
+putAway(odeRslt,type,jmax,qmax,soltype="cont",x=NULL,prices=NULL)
 }

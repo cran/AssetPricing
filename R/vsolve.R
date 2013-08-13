@@ -1,5 +1,5 @@
-vsolve <- function(S,lambda,gprob=NULL,tmax=NULL,x,nstep,
-                       alpha=NULL,salval=0,nverb=0) {
+vsolve <- function(S,lambda,gprob=NULL,tmax=NULL,x,nout=300,
+                       alpha=NULL,salval=0,method="lsoda") {
 #
 # Function vsolve to solve numerically the system of d.e.'s for the
 # value v_q(t) of a stock of q items at time t given a ***general***
@@ -130,36 +130,20 @@ vsolve <- function(S,lambda,gprob=NULL,tmax=NULL,x,nstep,
     assign("lambda",lambda,envir=environment(scrF))
     assign("type",type,envir=environment(scrF))
 
-# Do the Runge-Kutta thing.
-    tvec  <- seq(0,tmax,length=nstep+1)
-    tt    <- tvec[1]
-    delta <- tmax/nstep
+# Do some setting up/initializing:
+    tvec  <- seq(0,tmax,length=nout)
     v     <- (1:qmax)*salval
-    vdot <- scrF(v,tt)
-    tstor   <- list()
-    tstor[[1]] <- list(v=v,vdot=vdot)
 
-    for(i in 1:nstep) {
-        m1 <- delta*scrF(v,tt)
-        m2 <- delta*scrF(v+m1/2,tt+delta/2)
-        m3 <- delta*scrF(v+m2/2,tt+delta/2)
-        m4 <- delta*scrF(v+m3,tt+delta)
-        v  <- v + (m1+2*m2+2*m3+m4)/6
-        vdot <- scrF(v,tt)
-        tstor[[i+1]] <- list(v=v,vdot=vdot)
-        tt <- tvec[i+1]
-        if(nverb > 0 & i%%nverb == 0) cat(i,"")
-        if(nverb > 0 & i%%(10*nverb) == 0) cat("\n")
-    }
-    if(nverb >= 0 & nstep%%10 != 0) cat("\n")
-#
+# Solve the differential equation.
+odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
+
 # The functions in the object x are ``non-parametric'' functions;
 # they could have been defined over a larger interval than [0,tmax]
 # which is currently being investigated.  If so we need to reset
 # the tlim and ylim values based on the current value of tmax.
 #
     if(tmax < attr(x,"tlim")[2]) {
-        ttt <- seq(0,tmax,length=nstep)
+        ttt <- seq(0,tmax,length=nout)
         foo <- function(f,tt) {
                 return(range(f(tt)))
         }
@@ -168,6 +152,5 @@ vsolve <- function(S,lambda,gprob=NULL,tmax=NULL,x,nstep,
         attr(x,'ylim') <- range(unlist(tstor))
     }
     comment(x) <- "Prices not necessarily optimal."
-    tstor <- list(x=x,tstor=tstor)
-    putAway(tstor,type,jmax,qmax,tmax)
+    putAway(odeRslt,type,jmax,qmax,soltype="vsolve",x=x,prices=NULL)
 }

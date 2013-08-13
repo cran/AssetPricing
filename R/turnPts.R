@@ -10,15 +10,15 @@ turnPts <- function(a,b,v,Kpa,xlo,xhi) {
     for(r in 1:rmax) {
         vqmr <- if(r < q) v[q-r] else 0
         p1   <- polynomial(c(vqmr-vq,r))
-        p2   <- polynomial(c(a,b))
+        p2   <- try(polynomial(c(a,b)))
         ply  <- ply + Kpa[r]*p1*p2^r
     }
 #
 # Take its derivative.
-    dply <- deriv(as.polylist(ply))[[1]]
+    dply <- deriv(ply)
 #
 # Find the zeroes.
-    zzz  <- polyroot(dply)
+    zzz  <- try(polyroot(dply))
     rrr  <- sapply(zzz,function(z){isTRUE(all.equal(Im(z),0))})
     if(!any(rrr)) return(numeric(0))
     zzz  <- Re(zzz[rrr])

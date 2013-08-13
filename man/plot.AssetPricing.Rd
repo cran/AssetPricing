@@ -1,35 +1,43 @@
-\name{plot.flap}
-\alias{plot.flap}
+\name{plot.AssetPricing}
+\alias{plot.AssetPricing}
 \title{
    Plot a list of asset pricing functions.
 }
 \description{
-   Plot a list of functions --- in particular optimal price functions
-   or expected value functions or derivatives of the expected value
-   functions.  These are functions of residual time.  The indices of
-   the list correspond to the number of items available for sale and
-   possibly (for optimal price functions) the size of the arriving
-   group of customers.
+   Plot a list of functions --- in particular optimal price
+   functions or expected value functions or derivatives of the
+   expected value functions.  Such a list is assumed to occur as
+   a component of an object produced by \code{\link{xsolve}()} of
+   \code{\link{vsolve}()}.  The functions in the list are functions
+   of residual time.  The indices of the list correspond to the
+   number of items available for sale and possibly (for optimal
+   price functions) the size of the arriving group of customers.
 }
 \usage{
-\method{plot}{flap}(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
-             xlab=NULL,ylab=NULL,main=NULL,main.panel= NULL,
-             groups=NULL,add=FALSE,gloss=FALSE,glind=NULL,
-             extend=0.3,col.gloss=1,cex.gloss=0.8,mfrow=NULL,...)
+\method{plot}{AssetPricing}(x,witch=c("price","expVal","vdot"),
+             xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,xlab=NULL,
+             ylab=NULL,main=NULL,main.panel= NULL,groups=NULL,
+             add=FALSE,gloss=FALSE,glind=NULL,extend=0.3,col.gloss=1,
+             cex.gloss=0.8,mfrow=NULL,...)
 }
 \arguments{
   \item{x}{
-  An object of class \code{flap} such as a component of an object
+  An object of class \code{AssetPricing}, i.e. an object
   produced by \code{\link{vsolve}()}, or \code{\link{xsolve}()}.
+}
+  \item{witch}{
+  A text string indicating which of the three possible components
+  of \code{x} should be plotted.  May be abbreviated, e.g. to
+  \code{p}, \code{e} or \code{v}.
 }
   \item{xlim}{
   The \code{x} limits of the plot.  Defaults to the \code{tlim}
-  attribute of the object \code{x}.  If this attribute does not
+  attribute of the object \code{x[[witch]]}.  If this attribute does not
   exist and \code{xlim} is not supplied then an error is given.
 }
   \item{ylim}{
   The \code{y} limits of the plot.  Defaults to the \code{ylim}
-  attribute of the object \code{x}.  If this attribute does not
+  attribute of the object \code{x[[witch]]}.  If this attribute does not
   exist and \code{ylim} is not supplied then an error is given.
 }
 \item{lty}{
@@ -73,7 +81,7 @@
   A data frame with one, two or three columns, named \code{group},
   \code{q} and \code{j}.  The total number of rows should be less
   than or equal to the total number of entries of the function
-  list \code{x}.  Only those function traces corresponding to a
+  list \code{x[[witch]]}.  Only those function traces corresponding to a
   row of \code{groups} are plotted.  The traces corresponding to
   an individual value in the \code{group} column are plotted in the
   same panel of a multi-panel array of plots.  See \bold{Details}.
@@ -143,14 +151,15 @@
   The value of \code{jmax} is, when \dQuote{double indexing}
   applies, the maximum size of an arriving group of customers,
   and is otherwise equal to \code{1}.  It may be obtained as
-  \code{attr(x,"jmax")}.  Note that \dQuote{double indexing}
-  can \emph{only} apply when \code{x} is a list of \emph{price}
-  functions.  Hence \dQuote{double indexing} does not apply when
-  \code{x} is a list of expected value functions or of their
-  derivatives).  In these cases \code{jmax} is equal to \code{1}.
+  \code{attr(x,"jmax")}.  Note that \dQuote{double indexing} can
+  \emph{only} apply when \code{x[[witch]]} is a list of \emph{price}
+  functions, i.e. when \code{witch} is equal to \code{price}.
+  Hence \dQuote{double indexing} does not apply when \code{witch}
+  is equal to \code{expVal} or to \code{vdot}.  In these cases
+  \code{jmax} is equal to \code{1}.
 
   If \code{groups} is not specified then it defaults to a data
-  frame with number of rows equal to the length of \code{x}, The
+  frame with number of rows equal to the length of \code{x[[witch]]}, The
   \code{group} column has entries all equal to 1, i.e. there is
   a single group of traces.  The \code{q} and \code{j} columns
   contain all possible (valid) combinations of stock size and
@@ -177,12 +186,18 @@
   set the \code{group} column of \code{groups} to be \code{1:n}
   where \code{n} is the total number of traces being plotted.
 
-  This package uses a modified version of \code{plot.stepfun()}
-  rather than the one which appears in \code{package:stats}.
-  The modification causes \code{plot.stepfun()} to treat the
-  \code{xlim} argument in a manner similar to the way in which it is
-  treated by \code{plot.function}.  Note that \code{plot.stepfun()}
-  is \emph{not} exported from this package.
+  This function (i.e. \code{plot.AssetPricing()} calls upon an
+  \dQuote{internal} function \code{plot.flap()} to do the hard
+  yakka. (Note that \code{flap} stands for dQuote{function list
+  for asset pricing}.)
+
+  The function \code{plot.flap()} makes use of a modified
+  version of \code{plot.stepfun()}, rather than the one which
+  appears in \code{package:stats}.  The modification causes
+  \code{plot.stepfun()} to treat the \code{xlim} argument in a manner
+  similar to the way in which it is treated by \code{plot.function}.
+  Note that \code{plot.stepfun()} is \emph{not} exported from
+  this package.
 }
 \value{
 None.  This function exists only for its side effect, i.e.

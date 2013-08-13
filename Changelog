@@ -1,3 +1,42 @@
+Version 0.1-1
+
+* Changed the function turnPts to use deriv(ply) rather than
+  deriv(as.polylist(ply))[[1]].  God knows why I originally
+  put in this shaganappi ring-around-the-rosy.  I recollect
+  that I couldn't get deriv() to work on an object of class
+  "polynomial" but I could get it to work on an object of
+  class "polylist".  Clearly it ***does*** work on objects
+  of class "polynomial" so it is mysterious WTF was going on.
+  (6 June 2013).
+
+* Made adaptations to make use of the package deSolve to effect
+  the solution of the differential equations. (Started 21 July 2013.)
+
+  The transition went surprisingly smoothly. One slight worry arose
+  in respect of the solution with piecewise linear price sensitivity
+  functions.  When choosing the optimal price it is possible for there
+  to be multiple maxima.  The maximum should be chosen to be as close
+  as possible to the previous value so as to avoid jump discontinuities
+  in the price function.  This requires knowing what the previous value
+  was.  When using my roll-your-own Runge-Kutta procedure I was able to
+  save the value of "x" as "xback" in the environment of "scrF" at each
+  Runge-Kutta step.  Now that I am using deSolve I can't get at such
+  a value of "x".  I have resorted to the expedient of saving the value
+  of "xopt" obtained at the end of scrF() as the value of "xback".
+  However this would be roughly equivalent to saving the value of "x"
+  at each of the 4 component steps of a Runge-Kutta steps, and this
+  doesn't seem quite right to me.  However it would appear to be the
+  best that I can do.
+
+* Made a (substantial?) change in the plotting regimen.  Rather than
+  calling plot.flap() on object$x, object$v, or object$vdot respectively.
+  I have now structured things so that the object returned by xsolve()
+  (or vsolve) has class AssetPricing.  I have written a plot method
+  plot.Assetpricing() with an argument "witch" to indicate which of
+  three components of the object should be plotted.  This method then
+  calls plot.flap() on the chosen component to do the real work.
+
+* A few other minor corrections and adjustments were made.
 
 Version 0.0-11
 

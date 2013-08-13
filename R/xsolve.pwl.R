@@ -1,5 +1,5 @@
-xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nstep,type,
-                           alpha,salval,maxFac,nverb) {
+xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nout,type,
+                           alpha,salval,maxFac,method) {
 #
 # Function xsolve.pwl to solve numerically the system of d.e.'s
 # for the value v_q(t) of a stock of q items at time t, using
@@ -69,30 +69,11 @@ xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nstep,type,
     assign("alpha",alpha,envir=environment(cev))
     assign("maxFac",maxFac,envir=environment(cev))
     
-# Do the Runge-Kutta thing.
-    delta <- tmax/nstep
-    tstor <- list()
-    tvec  <- seq(0,tmax,length=nstep+1)
-    tt    <- tvec[1]
+# Do some setting up/initializing:
+    tvec  <- seq(0,tmax,length=nout)
     v     <- (1:qmax)*salval
-    vdot  <- scrF(v,tt)
-    x     <- scrF(v,tt,op=TRUE)
-    tstor[[1]] <- list(x=x,v=v,vdot=vdot)
-    
-    for(i in 1:nstep) {
-            assign("xback",x,envir=environment(cev))
-    	m1 <- delta*scrF(v,tt)
-    	m2 <- delta*scrF(v+m1/2,tt+delta/2)
-    	m3 <- delta*scrF(v+m2/2,tt+delta/2)
-    	m4 <- delta*scrF(v+m3,tt+delta)
-    	v    <- v + (m1+2*m2+2*m3+m4)/6
-    	tt   <- tvec[i+1]
-    	vdot <- scrF(v,tt)
-    	x    <- scrF(v,tt,op=TRUE)
-    	tstor[[i+1]] <- list(x=x,v=v,vdot=vdot)
-    	if(nverb > 0 & i%%nverb == 0) cat(i,"")
-    	if(nverb > 0 & i%%(10*nverb) == 0) cat("\n")
-    }
-    if(nverb >= 0 & nstep%%10 != 0) cat("\n")
-    putAway(tstor,type,jmax,qmax,tmax,discrete=FALSE)
+
+# Solve the differential equation.
+    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
+    putAway(odeRslt,type,jmax,qmax,soltype="pwl",x=NULL,prices=NULL)
 }

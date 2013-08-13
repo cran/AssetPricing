@@ -12,8 +12,8 @@
   is piecewise linear in price.
 }
 \usage{
-   xsolve(S, lambda, gprob=1, tmax=NULL, qmax, prices=NULL, nstep, type="sip",
-                   alpha=NULL, salval=0, maxFac=1000, nverb=0)
+   xsolve(S, lambda, gprob=1, tmax=NULL, qmax, prices=NULL, nout=300,
+          type="sip", alpha=NULL, salval=0, maxFac=1000,method="lsoda")
 }
 \arguments{
   \item{S}{
@@ -49,10 +49,10 @@
   prices at which items may be offered for sale in the discrete
   pricing scenario.
 }
-  \item{nstep}{
-  The number of (equal) sub-intervals into which the interval
-  [0,\code{tmax}] is divided in the process of solving the system
-  of differential equations numerically.
+  \item{nout}{
+  The number of points at which values of the solution are to be
+  provided.  These are taken to be equispaced on
+  [0,\code{tmax}].
 }
   \item{type}{
   Scalar character string taking one of the two values \code{"sip"}
@@ -82,24 +82,24 @@
   See \bold{Details}.  Ignored if the price sensitivity function is
   smooth.
 }
-  \item{nverb}{
-  Non-negative integer; if \code{nverb > 0} then a \dQuote{progress
-  report} (actually consisting solely of the step number) is
-  printed out every \code{nverb} steps of the Runge-Kutta procedure.
-  (If \code{nverb==0} the procedure runs silently.)
+  \item{method}{
+  Character string specified the solution method to be used
+  by the differential equation solver \code{ode}.  There is
+  a fairly large number of possible methods.  See
+  \code{\link[deSolve]{ode}()} for details.
 }
 }
 \details{
   If prices are modelled as being continuous, and if the price
-  sensitivity function is differentiable, a coupled system of
-  differential equations for the optimal prices is solved.  If the
-  prices are modelled as being discrete or if the price sensitivity
-  function is piecewise linear in price, then a coupled system of
-  differential equations for the expected value of the stock is
-  solved, with the optimal price being determined at each step by
-  maximizing over an appropriate finite discrete set. The systems
-  of differential equations are treated in vectorised form and are
-  solved via the method of Runge-Kutta.
+  sensitivity function is differentiable, a coupled system
+  of differential equations for the optimal prices is solved.
+  If the prices are modelled as being discrete or if the price
+  sensitivity function is piecewise linear in price, then a
+  coupled system of differential equations for the expected
+  value of the stock is solved, with the optimal price being
+  determined at each step by maximizing over an appropriate finite
+  discrete set.  These differential equations are solved by the
+  \code{\link[deSolve]{ode}()} from the \code{deSolve} package.
 
   The components of the argument \code{S} should be provided as
   expressions when the price sensitivity functions are assumed to
@@ -160,6 +160,16 @@
   it must be less than or equal to the corresponding attribute
   of \code{S}.
 }
+\section{Note}{
+A substantial change was made to this package as of the change
+of version number from 0.0-11 to 0.1-0.  Previously the differential
+equations which arise were solved via a \dQuote{locally produced}
+roll-your-own Runge-Kutta procedure.  Now they are solved (in a
+more sophisticated manner) using the package \code{deSolve}.  This
+increases the solution speed by a factor of about 7.  There will
+be (minor, it is to be hoped) numerical differences in solutions
+produced from the same input.
+}
 
 \value{
 A list with components:
@@ -217,11 +227,9 @@ doi: 10.1016/j.omega.2011.10.001.
 }
 \examples{
 #
-# In these examples "nstep" has been set equal to 100
-# to reduce the time for package checking on CRAN.
-# A more "realistic" value is nstep=1000.  Likewise "qmax"
-# has been set equal to 5 which is an unrealistically low
-# value for the total number of assets.
+# In these examples "qmax" has been set equal to 5 which is
+# an unrealistically low value for the total number of assets.
+# This is done so as to reduce the time for package checking on CRAN.
 #
 # Smooth price sensitivity function.
 S <- expression(exp(-kappa*x/(1+gamma*exp(-beta*t))))
@@ -231,16 +239,16 @@ attr(S,"parvec") <- c(kappa=10/1.5,gamma=9,beta=1)
 lambda1 <- function(tt){
 	84*(1-tt)
 }
-X1 <- xsolve(S=S,lambda=lambda1,gprob=1,tmax=1,qmax=5,nstep=100,
-             type="sip",nverb=50)
+X1 <- xsolve(S=S,lambda=lambda1,gprob=1,tmax=1,qmax=5,
+             type="sip")
 # Optimal pricing policy assuming customers arrive in groups of
 # size up to 5, with group size probabilities 1/3, 4/15, 1/5, 2/15,
 # and 1/15 respectively.
 lambda2 <- function(tt){
 	36*(1-tt)
 }
-X2 <- xsolve(S=S,lambda=lambda2,gprob=(5:1)/15,tmax=1,qmax=5,nstep=100,
-             type="sip", alpha=0.5,nverb=50)
+X2 <- xsolve(S=S,lambda=lambda2,gprob=(5:1)/15,tmax=1,qmax=5,
+             type="sip", alpha=0.5)
 
 # Note that the intensity functions lambda1() and lambda2() are
 # such that the expected total number of customers is 42 in each case.
@@ -254,7 +262,7 @@ S      <- function(x,t){
                 e
           }
 X3 <- xsolve(S=S,lambda=lambda3,gprob=1,tmax=1,qmax=5,prices=c(1,0.6),
-             nstep=100,type="sip",nverb=50)
+             type="sip")
 
 # Piecewise linear price sensitivity function.
 #
@@ -264,8 +272,8 @@ X3 <- xsolve(S=S,lambda=lambda3,gprob=1,tmax=1,qmax=5,prices=c(1,0.6),
 \dontrun{
 l0 <- get("lambda",envir=environment(get("alpha",envir=environment(S))[[1]]))
 lambda4 <- function(t){apply(l0(t),1,sum)}
-X4 <- xsolve(S=S,lambda=lambda4,gprob=(5:1)/15,qmax=30,nstep=1000,type="sip",
-                   alpha=0.5,nverb=50)
+X4 <- xsolve(S=S,lambda=lambda4,gprob=(5:1)/15,qmax=30,type="sip",
+                   alpha=0.5)
 }
 }
 \keyword{ math }

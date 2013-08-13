@@ -11,8 +11,8 @@
   of Runge-Kutta.
 }
 \usage{
-    vsolve(S, lambda, gprob, tmax=NULL, x, nstep,
-                   alpha=NULL, salval=0, nverb=0)
+    vsolve(S, lambda, gprob, tmax=NULL, x, nout=300,
+                   alpha=NULL, salval=0, method="lsoda")
 }
 \arguments{
   \item{S}{
@@ -54,10 +54,10 @@
   maximum number of assets available for sale, i.e. the number of
   assets available at the starting (residual) time \code{tmax}.
 }
-  \item{nstep}{
-  The number of (equal) sub-intervals into which the interval
-  [0,\code{tmax}] is divided in the process of solving the system
-  of differential equations numerically.
+  \item{nout}{
+  The number of points at which values of the solution are to be
+  provided.  These are taken to be equispaced on
+  [0,\code{tmax}].
 }
   \item{alpha}{
   A numeric scalar between 0 and 1 specifying the probability that an
@@ -72,11 +72,11 @@
   asset drops at residual time \code{t=0}.  Usually \code{salval}
   is equal to 0.
 }
-  \item{nverb}{
-  Non-negative integer; if \code{nverb > 0} then a \dQuote{progress
-  report} (actually consisting solely of the step number) is
-  printed out every \code{nverb} steps of the Runge-Kutta procedure.
-  (If \code{nverb==0} the procedure runs silently.)
+  \item{method}{
+  Character string specified the solution method to be used
+  by the differential equation solver \code{ode}.  There is
+  a fairly large number of possible methods.  See
+  \code{\link[deSolve]{ode}()} for details.
 }
 }
 
@@ -119,6 +119,18 @@
   single indexing \code{x} does not depend on group size and so no
   restriction is imposed.
 }
+
+\section{Note}{
+A substantial change was made to this package as of the change
+of version number from 0.0-11 to 0.1-0.  Previously the differential
+equations which arise were solved via a \dQuote{locally produced}
+roll-your-own Runge-Kutta procedure.  Now they are solved (in a
+more sophisticated manner) using the package \code{deSolve}.  This
+increases the solution speed by a factor of about 7.  There will
+be (minor, it is to be hoped) numerical differences in solutions
+produced from the same input.
+}
+
 \value{
 A list with components
 \item{x}{The argument \code{x} which was passed to \code{vsolve},
@@ -150,11 +162,9 @@ doi: 10.1016/j.omega.2011.10.001.
 }
 \examples{
 #
-# In these examples "nstep" has been set equal to 100
-# to reduce the time for package checking on CRAN.
-# A more "realistic" value is nstep=1000.  Likewise "qmax"
-# has been set equal to 5 which is an unrealistically low
-# value for the total number of assets.
+# In these examples "qmax" has been set equal to 5 which is
+# an unrealistically low value for the total number of assets.
+# This is done so as to reduce the time for package checking on CRAN.
 #
 S <- expression(exp(-kappa*x/(1+gamma*exp(-beta*t))))
 attr(S,"parvec") <- c(kappa=10/1.5,gamma=9,beta=1)
@@ -164,7 +174,7 @@ lambda1 <- function(tt){
 }
 
 # Optimal pricing policy assuming customers arrive singly:
-X <- xsolve(S=S,lambda=lambda1,gprob=1,tmax=1,qmax=5,nstep=100,nverb=50)
+X <- xsolve(S=S,lambda=lambda1,gprob=1,tmax=1,qmax=5)
 lambda2 <- function(tt){
 #	eps <- sqrt(.Machine$double.eps)
 	36*(1-tt)
@@ -173,7 +183,6 @@ lambda2 <- function(tt){
 # (sub-optimal) pricing policy based on the (erroneous) assumption that
 # they arrive singly.  Note that the two scenarios are ``comparable'' in
 # that the expected total number of customers is 42 in each case.
-V <- vsolve(S=S,lambda=lambda2,gprob=(5:1)/15,x=X$x,nstep=100,
-            alpha=0.5,nverb=50)
+V <- vsolve(S=S,lambda=lambda2,gprob=(5:1)/15,x=X$x,alpha=0.5)
 }
 \keyword{ math }

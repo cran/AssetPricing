@@ -1,4 +1,4 @@
-scrG <- function(x,tt) {
+scrG <- function(tt,x,parms,...) {
 # Note that the objects dS, gpr, alpha, and type are
 # assigned in the environment of scrG.
 #
@@ -71,6 +71,5 @@ if(type=="sip") {
 		}
 	}
 } else stop(paste("Type",type,"unrecognized.\n"))
-
-xdot
+list(xdot=xdot,v=v,vdot=vdot)
 }

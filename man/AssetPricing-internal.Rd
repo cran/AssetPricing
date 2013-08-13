@@ -6,6 +6,7 @@
 \alias{i2qj}
 \alias{initx}
 \alias{.newt}
+\alias{plot.flap}
 \alias{plot.stepfun}
 \alias{putAway}
 \alias{qj2i}
@@ -30,24 +31,28 @@ i2qj(i,qmax,jmax)
 initx(v,type)
 .newt(fn,start,...,eps.p = 1e-08,eps.v = NULL,
      maxit = 50,verb = FALSE)
-plot.stepfun(x, xval, xlim, ylim = range(c(y, Fn.kn)), xlab = "x",
-             ylab = "f(x)", main = NULL, add = FALSE, verticals = TRUE,
-             do.points = TRUE, pch = par("pch"), col = par("col"),
-             col.points = col, cex.points = par("cex"), col.hor = col,
-             col.vert = col, lty = par("lty"), lwd = par("lwd"), ...)
-putAway(tstor,type,jmax,qmax,tmax,discrete,prices=NULL)
+\method{plot}{flap}(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,xlab=NULL,
+                    ylab=NULL,main=NULL,main.panel= NULL,groups=NULL,
+                    add=FALSE,gloss=FALSE,glind=NULL,extend=0.3,col.gloss=1,
+                    cex.gloss=0.8,mfrow=NULL,...)
+\method{plot}{stepfun}(x, xval, xlim, ylim = range(c(y, Fn.kn)), xlab = "x",
+                       ylab = "f(x)", main = NULL, add = FALSE, verticals = TRUE,
+                       do.points = TRUE, pch = par("pch"), col = par("col"),
+                       col.points = col, cex.points = par("cex"), col.hor = col,
+                       col.vert = col, lty = par("lty"), lwd = par("lwd"), ...)
+putAway(odeRslt,type,jmax,qmax,soltype,x=NULL,prices=NULL)
 qj2i(q,j,qmax)
 rwmax(x,eps)
-scrG(x,tt)
-scrF(v,tt,op=FALSE)
+scrG(tt,x,parms,...)
+scrF(tt,v,parms,...)
 turnPts(a,b,v,Kpa,xlo,xhi)
 vupdate(x,tt,type)
-xsolve.cont(S,lambda,gprob,tmax,qmax,nstep,type,
-                           alpha,salval,nverb)
-xsolve.disc(S,lambda,gprob,tmax,qmax,prices,nstep,type,
-                           alpha,salval,maxFac,nverb)
-xsolve.pwl(S,lambda,gprob,tmax,qmax,nstep,type,
-                           alpha,salval,maxFac,nverb)
+xsolve.cont(S,lambda,gprob,tmax,qmax,nout,type,
+                           alpha,salval,method)
+xsolve.disc(S,lambda,gprob,tmax,qmax,prices,nout,type,
+                           alpha,salval,maxFac,method)
+xsolve.pwl(S,lambda,gprob,tmax,qmax,nout,type,
+                           alpha,salval,maxFac,method)
 }
 \details{
   These functions are auxiliary and are not intended to be called by
