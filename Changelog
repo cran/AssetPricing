@@ -1,4 +1,38 @@
+Version 0.1-2
+
+* Submitted to CRAN 28/January/2014
+
+* Tweaked the DESCRIPTION file to *import* polynom and
+  deSolve rather than *depend* on them; tweaked the
+  NAMESPACE file to import these packages
+
 Version 0.1-1
+
+* Submitted to CRAN 27/January/2014.
+
+* Tidied up RCS and made sure everything is up to data with
+  respect to version of the functions. (27/January/2014)
+
+* Changed the procedure for smoothing --- minimizing the
+  size and frequency of the jumps in --- the price function in
+  the discrete pricing and piecewise linear price sensitivity
+  function settings.  This involves a new argument "epsilon"
+  which replaces the old argument "maxFac". (27/January/2014)
+
+* Changed the procedure for determining candidate prices in the
+  case of piecewise linear price sensitivity functions, so that it
+  can handle the "dip" (doubly indexed price)
+  scenario. (27/January/2014)
+
+* Revised vsolve() slightly so that if the specified value
+  of "x" (prices) has a comment, then the default comment,
+  i.e. "Prices not necessarily optimal." is catenated to that
+  comment, rather than overwriting it as was previously the
+  case. (26/August/2013).
+
+Version 0.1-0
+
+* Submitted to CRAN 13/August/2013.
 
 * Changed the function turnPts to use deriv(ply) rather than
   deriv(as.polylist(ply))[[1]].  God knows why I originally

@@ -1,10 +1,15 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks
-	rolf:1.7; strict;
+	rolf:1.8; strict;
 comment	@# @;
 
+
+1.8
+date	2014.01.27.08.36.48;	author rolf;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2012.01.25.01.55.17;	author rolf;	state Exp;
@@ -48,12 +53,14 @@ of the d.e. to be solved.
 @
 
 
-1.7
+1.8
 log
-@Adjusted the initial comment slightly.
+@Minor revision to make this function compatible with the
+ode() function rather than the roll-your-own Runge-Kutte
+procedure.
 @
 text
-@scrG <- function(x,tt) {
+@scrG <- function(tt,x,parms,...) {
 # Note that the objects dS, gpr, alpha, and type are
 # assigned in the environment of scrG.
 #
@@ -126,9 +133,23 @@ if(type=="sip") {
 		}
 	}
 } else stop(paste("Type",type,"unrecognized.\n"))
+list(xdot=xdot,v=v,vdot=vdot)
+}
+@
+
+
+1.7
+log
+@Adjusted the initial comment slightly.
+@
+text
+@d1 1
+a1 1
+scrG <- function(x,tt) {
+d74 1
+a74 2
 
 xdot
-}
 @
 
 

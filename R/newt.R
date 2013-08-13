@@ -1,5 +1,5 @@
 .newt <- function(fn,start,...,eps.p = 1e-08,eps.v = NULL,
-                 maxit = 50,verb = FALSE)
+                  maxit = 50,verb = FALSE)
 {
 p.o <- start
 itno <- 1

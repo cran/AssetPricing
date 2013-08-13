@@ -1,10 +1,15 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks
-	rolf:1.7; strict;
+	rolf:1.8; strict;
 comment	@# @;
 
+
+1.8
+date	2014.01.27.08.42.16;	author rolf;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2012.11.06.21.21.13;	author rolf;	state Exp;
@@ -48,13 +53,14 @@ of discrete prices.
 @
 
 
-1.7
+1.8
 log
-@Cosmetic tidying.
+@Revised to incorporate the new smoothing (reducing jumps)
+procedure.  See help file.
 @
 text
-@xsolve.disc <- function(S,lambda,gprob,tmax,qmax,prices,nstep,type,
-                        alpha,salval,maxFac,nverb) {
+@xsolve.disc <- function(S,lambda,gprob,tmax,qmax,prices,nout,type,
+                        alpha,salval,epsilon,method) {
 #
 # Function xsolve.disc to solve numerically the system of d.e.'s
 # for the value v_q(t) of a stock of q items at time t, using the
@@ -123,17 +129,45 @@ text
                                            # the "smooth" case.
     assign("gpr",gpr,envir=environment(cev))
     assign("alpha",alpha,envir=environment(cev))
-    assign("maxFac",maxFac,envir=environment(cev))
+    assign("epsilon",epsilon,envir=environment(cev))
 #
     assign("x",prices,envir=environment(scrF))
     assign("lambda",lambda,envir=environment(scrF))
     assign("type",type,envir=environment(scrF))
+    assign("stabilize",epsilon>0,envir=environment(scrF))
 
+# Do some setting up/initializing.
+    tvec  <- seq(0,tmax,length=nout)
+    v     <- (1:qmax)*salval
+
+# Solve the differental equation:
+    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
+    putAway(odeRslt,type,jmax,qmax,soltype="disc",x=NULL,prices=prices)
+}
+@
+
+
+1.7
+log
+@Cosmetic tidying.
+@
+text
+@d1 2
+a2 2
+xsolve.disc <- function(S,lambda,gprob,tmax,qmax,prices,nstep,type,
+                        alpha,salval,maxFac,nverb) {
+d71 1
+a71 1
+    assign("maxFac",maxFac,envir=environment(cev))
+d76 1
+d78 2
+a79 4
 # Do the Runge-Kutta thing.
     tvec  <- seq(0,tmax,length=nstep+1)
     tt    <- tvec[1]
     delta <- tmax/nstep
-    v     <- (1:qmax)*salval
+d81 4
+a84 22
     tt    <- tvec[1]
     vdot  <- scrF(v,tt)
     x     <- scrF(v,tt,op=TRUE)
@@ -156,7 +190,6 @@ text
     }
     if(nverb >= 0 & nstep%%10 != 0) cat("\n")
     putAway(tstor,type,jmax,qmax,tmax,discrete=TRUE,prices=prices)
-}
 @
 
 

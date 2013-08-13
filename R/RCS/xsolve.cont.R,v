@@ -1,10 +1,15 @@
-head	1.15;
+head	1.16;
 access;
 symbols;
 locks
-	rolf:1.15; strict;
+	rolf:1.16; strict;
 comment	@# @;
 
+
+1.16
+date	2014.01.27.08.41.04;	author rolf;	state Exp;
+branches;
+next	1.15;
 
 1.15
 date	2012.11.06.21.20.36;	author rolf;	state Exp;
@@ -88,22 +93,22 @@ via Runge-Kutta, in the continuous price case.
 @
 
 
-1.15
+1.16
 log
-@Cosmetic tidying.
+@Revised to be compatible with the ode() function rather than
+with the roll-your-own Runge-Kutte procedure.
 @
 text
-@xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nstep,type,
-                        alpha,salval,nverb) {
+@xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nout,type,
+                        alpha,salval,method) {
 #
 # Function xsolve.cont to solve numerically the system of d.e.'s for
 # the optimum price x_q(t) of an item of stock when there are q
 # items remaining at time t.  Of necessity the price x_q(t) must be
-# ***continuous*** for this function to make sense.  The procedure uses
-# the method of Runge-Kutta.  (Note that time is residual time, i.e.
-# the time remaining until the expiry date, and hence decreases as
-# the expiry date approaches. However we solve forward in time,
-# starting from the expiry date, i.e. t=0.
+# ***continuous*** for this function to make sense.  Note that time
+# is residual time, i.e.  the time remaining until the expiry date,
+# and hence decreases as the expiry date approaches. However we
+# solve forward in time, starting from the expiry date, i.e. t=0.
 #
 # Note that
 #           - S is an *expression* or *call*, or a *list* of such,
@@ -116,15 +121,14 @@ text
 #             we are solving the differential equation
 #           - qmax is the initial number of items for sale, tmax
 #             time units from the expiry date
-#           - nstep is the number of Runge-Kutta steps to take
-#             in the solution process
+#           - nout is the number of time points at which the values of
+#             the solution are required. These points will be equispaced
+#             on [0,tmax]
 #           - type is the specification of the model type, either ``sip''
 #             (singly indexed prices) or ``dip'' (doubly indexed prices).
 #           - salval is the ``salvage value'' of an item of stock when
 #             the expiry date or deadline is reached; used to determine
 #             the initial conditions.
-#           - nverb specifies how often "progress reports" should be
-#             printed out.
 #
 # Note that ``scrG'' means ``script G function''; the (vector) d.e.
 # that we are solving is
@@ -203,13 +207,49 @@ text
 #
     assign("type",type,envir=environment(scrG))
 
+# Set up the vector of "out" times and initialize.
+    tvec  <- seq(0,tmax,length=nout)
+    v     <- (1:qmax)*salval
+    x     <- initx(v,type)
+# Solve the differential equation.
+odeRslt <- ode(x,tvec,scrG,parms=NULL,method=method)
+putAway(odeRslt,type,jmax,qmax,soltype="cont",x=NULL,prices=NULL)
+}
+@
+
+
+1.15
+log
+@Cosmetic tidying.
+@
+text
+@d1 2
+a2 2
+xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nstep,type,
+                        alpha,salval,nverb) {
+d7 4
+a10 5
+# ***continuous*** for this function to make sense.  The procedure uses
+# the method of Runge-Kutta.  (Note that time is residual time, i.e.
+# the time remaining until the expiry date, and hence decreases as
+# the expiry date approaches. However we solve forward in time,
+# starting from the expiry date, i.e. t=0.
+d23 3
+a25 2
+#           - nstep is the number of Runge-Kutta steps to take
+#             in the solution process
+a30 2
+#           - nverb specifies how often "progress reports" should be
+#             printed out.
+d109 2
+a110 5
 # Set thing up for doing Runge-Kutta.
     delta <- tmax/nstep
     tstor <- list()
     tvec  <- seq(0,tmax,length=nstep+1)
     tt    <- tvec[1]
-    v     <- (1:qmax)*salval
-    x     <- initx(v,type)
+d113 3
+a115 19
     vdot  <- lambda(tt)*(-v + cev(x,tt,v,type))
     tstor[[1]] <- list(x=x,v=v,vdot=vdot)
 
@@ -229,7 +269,6 @@ text
         if(nverb >= 0 & nstep%%10 != 0) cat("\n")
 
     putAway(tstor,type,jmax,qmax,tmax,discrete=FALSE)
-}
 @
 
 

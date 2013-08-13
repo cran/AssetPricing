@@ -1,10 +1,15 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks
-	rolf:1.5; strict;
+	rolf:1.6; strict;
 comment	@# @;
 
+
+1.6
+date	2014.01.27.08.43.54;	author rolf;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2012.11.06.21.21.46;	author rolf;	state Exp;
@@ -38,13 +43,14 @@ the price sensitivity function is piecewise linear in price.
 @
 
 
-1.5
+1.6
 log
-@Cosmetic tidying.
+@Revised to incorporate the new smoothing (reducing jumps)
+>> procedure.  See help file.
 @
 text
-@xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nstep,type,
-                           alpha,salval,maxFac,nverb) {
+@xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nout,type,
+                           alpha,salval,epsilon,method) {
 #
 # Function xsolve.pwl to solve numerically the system of d.e.'s
 # for the value v_q(t) of a stock of q items at time t, using
@@ -95,6 +101,7 @@ text
     
 # Stow necessary objects in the environment of scrF.
     environment(scrF) <- new.env()
+    assign("stabilize",epsilon>0,envir=environment(scrF))
     assign("type",type,envir=environment(scrF))
     assign("lambda",lambda,envir=environment(scrF))
     assign("alpha",get("alpha",envir=environment(S)),envir=environment(scrF))
@@ -112,14 +119,41 @@ text
     assign("dS",dS,envir=environment(cev))
     assign("gpr",gpr,envir=environment(cev))
     assign("alpha",alpha,envir=environment(cev))
-    assign("maxFac",maxFac,envir=environment(cev))
+    assign("epsilon",epsilon,envir=environment(cev))
     
+# Do some setting up/initializing:
+    tvec  <- seq(0,tmax,length=nout)
+    v     <- (1:qmax)*salval
+
+# Solve the differential equation.
+    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
+    putAway(odeRslt,type,jmax,qmax,soltype="pwl",x=NULL,prices=NULL)
+}
+@
+
+
+1.5
+log
+@Cosmetic tidying.
+@
+text
+@d1 2
+a2 2
+xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nstep,type,
+                           alpha,salval,maxFac,nverb) {
+d53 1
+d71 1
+a71 1
+    assign("maxFac",maxFac,envir=environment(cev))
+d73 2
+a74 5
 # Do the Runge-Kutta thing.
     delta <- tmax/nstep
     tstor <- list()
     tvec  <- seq(0,tmax,length=nstep+1)
     tt    <- tvec[1]
-    v     <- (1:qmax)*salval
+d76 4
+a79 20
     vdot  <- scrF(v,tt)
     x     <- scrF(v,tt,op=TRUE)
     tstor[[1]] <- list(x=x,v=v,vdot=vdot)
@@ -140,7 +174,6 @@ text
     }
     if(nverb >= 0 & nstep%%10 != 0) cat("\n")
     putAway(tstor,type,jmax,qmax,tmax,discrete=FALSE)
-}
 @
 
 

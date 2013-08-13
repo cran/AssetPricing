@@ -1,5 +1,5 @@
 xsolve.disc <- function(S,lambda,gprob,tmax,qmax,prices,nout,type,
-                        alpha,salval,maxFac,method) {
+                        alpha,salval,epsilon,method) {
 #
 # Function xsolve.disc to solve numerically the system of d.e.'s
 # for the value v_q(t) of a stock of q items at time t, using the
@@ -68,11 +68,12 @@ xsolve.disc <- function(S,lambda,gprob,tmax,qmax,prices,nout,type,
                                            # the "smooth" case.
     assign("gpr",gpr,envir=environment(cev))
     assign("alpha",alpha,envir=environment(cev))
-    assign("maxFac",maxFac,envir=environment(cev))
+    assign("epsilon",epsilon,envir=environment(cev))
 #
     assign("x",prices,envir=environment(scrF))
     assign("lambda",lambda,envir=environment(scrF))
     assign("type",type,envir=environment(scrF))
+    assign("stabilize",epsilon>0,envir=environment(scrF))
 
 # Do some setting up/initializing.
     tvec  <- seq(0,tmax,length=nout)

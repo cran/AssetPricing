@@ -3,6 +3,7 @@
 \alias{cev}
 \alias{findSolType}
 \alias{getPossPrices}
+\alias{getS}
 \alias{i2qj}
 \alias{initx}
 \alias{.newt}
@@ -10,7 +11,6 @@
 \alias{plot.stepfun}
 \alias{putAway}
 \alias{qj2i}
-\alias{rwmax}
 \alias{scrF}
 \alias{scrG}
 \alias{turnPts}
@@ -26,7 +26,8 @@
 a2sf(x,tt,xlim,npts=1000)
 cev(x,t,v,type,maximize=FALSE)
 findSolType(S,prices)
-getPossPrices(v,t,alpha,beta,kn,Kpa)
+getPossPrices(v,t,alpha,beta,kn,Kpa,type)
+getS(dS,xc,t,jays)
 i2qj(i,qmax,jmax)
 initx(v,type)
 .newt(fn,start,...,eps.p = 1e-08,eps.v = NULL,
@@ -42,17 +43,16 @@ initx(v,type)
                        col.vert = col, lty = par("lty"), lwd = par("lwd"), ...)
 putAway(odeRslt,type,jmax,qmax,soltype,x=NULL,prices=NULL)
 qj2i(q,j,qmax)
-rwmax(x,eps)
 scrG(tt,x,parms,...)
 scrF(tt,v,parms,...)
-turnPts(a,b,v,Kpa,xlo,xhi)
+turnPts(a,b,v,Kpa,xlo,xhi,type)
 vupdate(x,tt,type)
 xsolve.cont(S,lambda,gprob,tmax,qmax,nout,type,
                            alpha,salval,method)
 xsolve.disc(S,lambda,gprob,tmax,qmax,prices,nout,type,
-                           alpha,salval,maxFac,method)
+                           alpha,salval,epsilon,method)
 xsolve.pwl(S,lambda,gprob,tmax,qmax,nout,type,
-                           alpha,salval,maxFac,method)
+                           alpha,salval,epsilon,method)
 }
 \details{
   These functions are auxiliary and are not intended to be called by

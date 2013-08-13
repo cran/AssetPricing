@@ -1,10 +1,15 @@
-head	1.5;
+head	1.6;
 access;
 symbols;
 locks
-	rolf:1.5; strict;
+	rolf:1.6; strict;
 comment	@# @;
 
+
+1.6
+date	2014.01.27.08.39.32;	author rolf;	state Exp;
+branches;
+next	1.5;
 
 1.5
 date	2012.11.06.21.16.32;	author rolf;	state Exp;
@@ -40,15 +45,14 @@ for the single arrival setting.
 @
 
 
-1.5
+1.6
 log
-@Now checks on the value of "jmax" as determined from "gprob"
-to make sure it's <= the "jmax" attribute of "x" when "x"
-inherits from "di.flap".
+@Revised to be compatible with the ode() function rather than with
+the roll-your-own Runge-Kutte procedure.
 @
 text
-@vsolve <- function(S,lambda,gprob=NULL,tmax=NULL,x,nstep,
-                       alpha=NULL,salval=0,nverb=0) {
+@vsolve <- function(S,lambda,gprob=NULL,tmax=NULL,x,nout=300,
+                       alpha=NULL,salval=0,method="lsoda") {
 #
 # Function vsolve to solve numerically the system of d.e.'s for the
 # value v_q(t) of a stock of q items at time t given a ***general***
@@ -179,11 +183,52 @@ text
     assign("lambda",lambda,envir=environment(scrF))
     assign("type",type,envir=environment(scrF))
 
+# Do some setting up/initializing:
+    tvec  <- seq(0,tmax,length=nout)
+    v     <- (1:qmax)*salval
+
+# Solve the differential equation.
+odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
+
+# The functions in the object x are ``non-parametric'' functions;
+# they could have been defined over a larger interval than [0,tmax]
+# which is currently being investigated.  If so we need to reset
+# the tlim and ylim values based on the current value of tmax.
+#
+    if(tmax < attr(x,"tlim")[2]) {
+        ttt <- seq(0,tmax,length=nout)
+        foo <- function(f,tt) {
+                return(range(f(tt)))
+        }
+        tstor <- lapply(x,foo,tt=ttt)
+        attr(x,'tlim') <- c(0,tmax)
+        attr(x,'ylim') <- range(unlist(tstor))
+    }
+    comment(x) <- c(comment(x),"Prices not necessarily optimal.")
+    putAway(odeRslt,type,jmax,qmax,soltype="vsolve",x=x,prices=NULL)
+}
+@
+
+
+1.5
+log
+@Now checks on the value of "jmax" as determined from "gprob"
+to make sure it's <= the "jmax" attribute of "x" when "x"
+inherits from "di.flap".
+@
+text
+@d1 2
+a2 2
+vsolve <- function(S,lambda,gprob=NULL,tmax=NULL,x,nstep,
+                       alpha=NULL,salval=0,nverb=0) {
+d133 2
+a134 4
 # Do the Runge-Kutta thing.
     tvec  <- seq(0,tmax,length=nstep+1)
     tt    <- tvec[1]
     delta <- tmax/nstep
-    v     <- (1:qmax)*salval
+d136 4
+a139 18
     vdot <- scrF(v,tt)
     tstor   <- list()
     tstor[[1]] <- list(v=v,vdot=vdot)
@@ -202,24 +247,14 @@ text
     }
     if(nverb >= 0 & nstep%%10 != 0) cat("\n")
 #
-# The functions in the object x are ``non-parametric'' functions;
-# they could have been defined over a larger interval than [0,tmax]
-# which is currently being investigated.  If so we need to reset
-# the tlim and ylim values based on the current value of tmax.
-#
-    if(tmax < attr(x,"tlim")[2]) {
+d146 1
+a146 1
         ttt <- seq(0,tmax,length=nstep)
-        foo <- function(f,tt) {
-                return(range(f(tt)))
-        }
-        tstor <- lapply(x,foo,tt=ttt)
-        attr(x,'tlim') <- c(0,tmax)
-        attr(x,'ylim') <- range(unlist(tstor))
-    }
+d154 2
+a155 3
     comment(x) <- "Prices not necessarily optimal."
     tstor <- list(x=x,tstor=tstor)
     putAway(tstor,type,jmax,qmax,tmax)
-}
 @
 
 

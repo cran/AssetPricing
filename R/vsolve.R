@@ -151,6 +151,6 @@ odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
         attr(x,'tlim') <- c(0,tmax)
         attr(x,'ylim') <- range(unlist(tstor))
     }
-    comment(x) <- "Prices not necessarily optimal."
+    comment(x) <- c(comment(x),"Prices not necessarily optimal.")
     putAway(odeRslt,type,jmax,qmax,soltype="vsolve",x=x,prices=NULL)
 }

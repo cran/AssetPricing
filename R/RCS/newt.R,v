@@ -1,10 +1,15 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks
-	rolf:1.1; strict;
+	rolf:1.2; strict;
 comment	@# @;
 
+
+1.2
+date	2014.01.27.08.21.54;	author rolf;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2012.01.08.22.51.56;	author rolf;	state Exp;
@@ -17,13 +22,13 @@ desc
 @
 
 
-1.1
+1.2
 log
-@Initial revision
+@Tiny cosmetic change; moved 2nd line one space right.
 @
 text
 @.newt <- function(fn,start,...,eps.p = 1e-08,eps.v = NULL,
-                 maxit = 50,verb = FALSE)
+                  maxit = 50,verb = FALSE)
 {
 p.o <- start
 itno <- 1
@@ -73,4 +78,15 @@ repeat {
 }
 as.vector(rslt)
 }
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d2 1
+a2 1
+                 maxit = 50,verb = FALSE)
 @

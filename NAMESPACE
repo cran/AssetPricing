@@ -1,5 +1,8 @@
 
-# Export pretty-well everything except ".newt", "plot.stepfun" and "rwmax".
-export(a2sf, qj2i, turnPts, xsolve.disc, buildS, getPossPrices,
-plot.AssetPricing, plot.flap, vsolve, xsolve.pwl, cev, i2qj, scrF, vupdate, xsolve,
-findSolType, initx, putAway, scrG, xsolve.cont)
+# Export pretty-well everything except ".newt", and "plot.stepfun".
+export(a2sf, getPossPrices, plot.flap, turnPts, buildS, getS, vupdate, cev,
+i2qj, putAway, xsolve.cont, initx, qj2i, xsolve.disc, findSolType,
+xsolve.pwl, plot.AssetPricing, scrF, scrG, vsolve, xsolve)
+
+# Import polynom and deSolve:
+import(polynom, deSolve)

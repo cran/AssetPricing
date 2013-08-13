@@ -1,0 +1,35 @@
+head	1.1;
+access;
+symbols;
+locks
+	rolf:1.1; strict;
+comment	@# @;
+
+
+1.1
+date	2014.01.27.08.30.46;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Utility function to create a matrix of price sensitivity
+values at a specified time; rows <--> price, cols <--> group
+size.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@getS <- function(dS,xc,t,jays) {
+    if(is.list(dS)) {
+        S <- lapply(dS[jays],function(f,x,t){f(x,t)},x=xc,t=t)
+    } else {
+        S <- lapply(jays,function(j,dS,x,t){dS(x,t,j)},dS=dS,x=xc,t=t)
+    }
+    matrix(unlist(S),nrow=length(xc),ncol=length(jays))
+}
+@

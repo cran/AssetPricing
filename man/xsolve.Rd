@@ -13,7 +13,7 @@
 }
 \usage{
    xsolve(S, lambda, gprob=1, tmax=NULL, qmax, prices=NULL, nout=300,
-          type="sip", alpha=NULL, salval=0, maxFac=1000,method="lsoda")
+          type="sip", alpha=NULL, salval=0, epsilon=NULL,method="lsoda")
 }
 \arguments{
   \item{S}{
@@ -76,11 +76,13 @@
   asset drops at residual time \code{t=0}.  Usually \code{salval}
   is equal to 0.
 }
-  \item{maxFac}{
-  A (positive) numeric scalar used in determining the optimal price
+  \item{epsilon}{
+  A numeric scalar used in determining the optimal price
   in settings in which this involves maximizing over a discrete set.
-  See \bold{Details}.  Ignored if the price sensitivity function is
-  smooth.
+  See \bold{Details}.  It defaults to \code{.Machine$double.eps^0.25}
+  in the case of discrete prices and to \code{.Machine$double.eps^0.5}
+  when the price sensitivity function is piecewise linear.
+  It is ignored if the price sensitivity function is smooth.
 }
   \item{method}{
   Character string specified the solution method to be used
@@ -131,34 +133,34 @@
   to the power \code{j}.  If \code{S} is a list, then \code{S_j(x,t)}
   is taken to be its \code{j}-th entry.
 
-  For discrete prices and for piecewise linear price sensitivity
-  functions, determining the optimal price involves maximizing
-  expected values over finite discrete sets.  It can happen that
-  there are a number of values \dQuote{close} to the maximum, and
-  as a consequence the location of the maximum can make a sudden
-  \dQuote{jump} from one time step to the next, causing anomalous
-  looking discontinuities in the optimal price functions.  To avoid
-  this, the \dQuote{optimal} price is chosen to be that one from
-  among a suitable subset of the candidate prices which is closest
-  to the price at the previous time step.
-
-  The subset consists of those prices yielding expected values
-  which are within \eqn{\epsilon}{epsilon} of the maximum.  Here
-  \eqn{\epsilon}{epsilon} is equal to the range (i.e. \dQuote{max
-  minus min}) of the possible expected values, divided by
-  \code{maxFac}.  Setting \code{maxFac=Inf} has the effect of
-  simply picking the maximal value (or the first maximal value if
-  there are a number of such values that are numerically equal).
-  Using different values of \code{maxFac} may have an impact on
-  the optimal price functions but will generally have little or no
-  discernible impact on the corresponding expected values of stocks.
-
   In the case where argument \code{S} is a piecewise linear
   price sensitivity function, the argument \code{tmax} is, if not
   specified, taken to be the value of the corresponding attribute
   of \code{S}.  In this setting, if \code{tmax} \emph{is} specified
   it must be less than or equal to the corresponding attribute
   of \code{S}.
+
+  For discrete prices and for piecewise linear price sensitivity
+  functions, determining the optimal price involves maximizing
+  expected values over finite discrete sets.  It can happen that the
+  location of the maximum can make a sudden \dQuote{jump} from one
+  time step to the next, causing anomalous looking discontinuities
+  in the optimal price functions.  To avoid this, we check on the
+  change in the expected value at each of the possible new prices
+  as compared with that at the \dQuote{previous} price.
+
+  If the maximal \dQuote{improvement} in expected value is less
+  than or equal to \code{epsilon} then the \dQuote{new} price is
+  set equal to the previous value.  If the maximal improvement
+  is greater than \code{epsilon} then those values of price,
+  where the expected value is greater than the maximum value minus
+  \code{epsilon}, are considered and the one which is closest to
+  the previous price is chosen.
+
+  If \code{epsilon} is set equal to a value less than or equal to
+  \code{0} then the smoothing strategy described above is dispensed
+  with. In this case the maximum is taken to be the first of the
+  (possibly) multiple maxima of the expected value.
 }
 \section{Note}{
 A substantial change was made to this package as of the change
@@ -179,8 +181,8 @@ A list with components:
    the case of discrete prices it also inherits from \code{pwc.flap}
    (\code{pwc} stands for \dQuote{piecewise constant}), and if
    \code{type=="dip"} it also inherits from \code{di.flap}.)
-   It has the form of a list of functions \code{x_q(t)}, with
-   \code{q} running from 1 to \code{qmax} if \code{type=="sip"}.
+   If \code{type=="sip"} it has the form of a list of functions
+   \code{x_q(t)}, with \code{q} running from 1 to \code{qmax}
    If \code{type=="dip"} if has the form of a list of functions
    \code{x_qj(t)} with \code{q} running from 1 to \code{qmax} and
    \code{j} running from 1 to \code{min(q,jmax)} where \code{jmax}
@@ -220,10 +222,11 @@ doi: 10.1016/j.omega.2011.10.001.
 }
 \author{Rolf Turner
   \email{r.turner@auckland.ac.nz}
-  \url{http://www.math.unb.ca/~rolf}
+  \url{http://www.stat.auckland.ac.nz/~rolf}
 }
 \seealso{
-\code{\link{vsolve}()}, \code{\link{plot.flap}()}, \code{\link{buildS}()}
+\code{\link{vsolve}()}, \code{\link{plot.AssetPricing}()},
+\code{\link{buildS}()}
 }
 \examples{
 #

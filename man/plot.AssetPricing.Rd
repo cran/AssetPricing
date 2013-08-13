@@ -210,8 +210,8 @@ Omega, vol. 40, number 5, 2012, pages 533 -- 540,
 doi: 10.1016/j.omega.2011.10.001.
 }
 \author{Rolf Turner
-   \email{r.turner@auckland.ac.nz}
-   \url{http://www.math.unb.ca/~rolf}
+  \email{r.turner@auckland.ac.nz}
+  \url{http://www.stat.auckland.ac.nz/~rolf}
 }
 \seealso{
 \code{\link{xsolve}()}

@@ -66,7 +66,7 @@ doi: 10.1016/j.omega.2011.10.001.
 }
 \author{Rolf Turner
   \email{r.turner@auckland.ac.nz}
-  \url{http://www.math.unb.ca/~rolf}
+  \url{http://www.stat.auckland.ac.nz/~rolf}
 }
 
 \seealso{

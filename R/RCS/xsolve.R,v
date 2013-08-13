@@ -1,10 +1,20 @@
-head	1.6;
+head	1.8;
 access;
 symbols;
 locks
-	rolf:1.6; strict;
+	rolf:1.8; strict;
 comment	@# @;
 
+
+1.8
+date	2014.01.27.08.45.08;	author rolf;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2014.01.27.02.14.34;	author rolf;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2012.11.06.21.22.16;	author rolf;	state Exp;
@@ -44,13 +54,14 @@ list: xsolve.cont(), xsolve.disc(), and xsolve.pwl().
 @
 
 
-1.6
+1.8
 log
-@New argument maxFac; lambda now allowed to be a scalar;
+@Revised to incorporate the new smoothing (reducing jumps)
+>> procedure.  See help fi
 @
 text
-@xsolve <- function(S,lambda,gprob=1,tmax=NULL,qmax,prices=NULL,nstep,type="sip",
-                   alpha=NULL,salval=0,maxFac=1000,nverb=0) {
+@xsolve <- function(S,lambda,gprob=1,tmax=NULL,qmax,prices=NULL,nout=300,
+                   type="sip",alpha=NULL,salval=0,epsilon=NULL,method="lsoda") {
 #
 # Dispatch the problem to one of xsolve.cont(), xsolve.disc(),
 # xsolve.pwl(), depending on the nature of the price sensitivity
@@ -64,15 +75,60 @@ text
         lambda <- with(list(lambda=lambda),function(t){rep(lambda,length(t))})
     }
 
+    if(is.null(epsilon)) {
+        epsilon <- switch(EXPR=soltype,cont=NULL,
+                                       disc = (.Machine$double.eps)^0.25,
+                                       pwl  = (.Machine$double.eps)^0.5)
+    }
+
     switch(EXPR = soltype,
+	cont = xsolve.cont(S,lambda,gprob,tmax,qmax,nout,type,
+                           alpha,salval,method=method),
+	disc = xsolve.disc(S,lambda,gprob,tmax,qmax,prices,nout,type,
+                           alpha,salval,epsilon,method=method),
+	pwl  = xsolve.pwl(S,lambda,gprob,tmax,qmax,nout,type,
+                           alpha,salval,epsilon,method=method)
+    )
+}
+@
+
+
+1.7
+log
+@Argument "maxFac" added.
+@
+text
+@d1 2
+a2 2
+xsolve <- function(S,lambda,gprob=1,tmax=NULL,qmax,prices=NULL,nout=300,type="sip",
+                   alpha=NULL,salval=0,maxFac=1000,method="lsoda") {
+d16 6
+d26 1
+a26 1
+                           alpha,salval,maxFac,method=method),
+d28 1
+a28 1
+                           alpha,salval,maxFac,method=method)
+@
+
+
+1.6
+log
+@New argument maxFac; lambda now allowed to be a scalar;
+@
+text
+@d1 2
+a2 2
+xsolve <- function(S,lambda,gprob=1,tmax=NULL,qmax,prices=NULL,nstep,type="sip",
+                   alpha=NULL,salval=0,maxFac=1000,nverb=0) {
+d17 6
+a22 6
 	cont = xsolve.cont(S,lambda,gprob,tmax,qmax,nstep,type,
                            alpha,salval,nverb),
 	disc = xsolve.disc(S,lambda,gprob,tmax,qmax,prices,nstep,type,
                            alpha,salval,maxFac,nverb),
 	pwl  = xsolve.pwl(S,lambda,gprob,tmax,qmax,nstep,type,
                            alpha,salval,maxFac,nverb)
-    )
-}
 @
 
 

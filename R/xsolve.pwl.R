@@ -1,5 +1,5 @@
 xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nout,type,
-                           alpha,salval,maxFac,method) {
+                           alpha,salval,epsilon,method) {
 #
 # Function xsolve.pwl to solve numerically the system of d.e.'s
 # for the value v_q(t) of a stock of q items at time t, using
@@ -50,6 +50,7 @@ xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nout,type,
     
 # Stow necessary objects in the environment of scrF.
     environment(scrF) <- new.env()
+    assign("stabilize",epsilon>0,envir=environment(scrF))
     assign("type",type,envir=environment(scrF))
     assign("lambda",lambda,envir=environment(scrF))
     assign("alpha",get("alpha",envir=environment(S)),envir=environment(scrF))
@@ -67,7 +68,7 @@ xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nout,type,
     assign("dS",dS,envir=environment(cev))
     assign("gpr",gpr,envir=environment(cev))
     assign("alpha",alpha,envir=environment(cev))
-    assign("maxFac",maxFac,envir=environment(cev))
+    assign("epsilon",epsilon,envir=environment(cev))
     
 # Do some setting up/initializing:
     tvec  <- seq(0,tmax,length=nout)

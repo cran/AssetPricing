@@ -1,10 +1,15 @@
-head	1.4;
+head	1.5;
 access;
 symbols;
 locks
-	rolf:1.4; strict;
+	rolf:1.5; strict;
 comment	@# @;
 
+
+1.5
+date	2014.01.27.08.38.26;	author rolf;	state Exp;
+branches;
+next	1.4;
 
 1.4
 date	2012.11.20.02.37.56;	author rolf;	state Exp;
@@ -34,27 +39,76 @@ there being an arrival at time "t") of stock of goods.
 @
 
 
+1.5
+log
+@Revised to handle type="dip".
+@
+text
+@turnPts <- local({
+    goodZeroes <- function(dp,xlo,xhi){
+        zzz  <- polyroot(dp)
+        rrr  <- sapply(zzz,function(z){isTRUE(all.equal(Im(z),0))})
+        if(!any(rrr)) return(numeric(0))
+        zzz  <- unique(Re(zzz[rrr]))
+        ok   <- xlo <= zzz & zzz <= xhi
+        zzz[ok]
+    }
+
+function(a,b,v,Kpa,xlo,xhi,type) {
+#
+# Construct the polynomial.
+    q <- length(v)
+    rmax  <- suppressWarnings(max(which(Kpa > 0)))
+    if(rmax < 1) return(if(type=="sip") NULL else rep(list(NULL),q))
+    Kpa <- Kpa[1:rmax]
+    vq <- v[q]
+    if(type=="sip") ply <- 0 else rslt <- vector("list",q)
+    for(r in 1:rmax) {
+        vqmr <- if(r < q) v[q-r] else 0
+        c1 <- vqmr - vq
+        if(type=="dip") {
+            d1 <- if(r>1) polynomial(c(a,b)) else 1
+            dply <- d1*polynomial(c(a+b*c1,b*(r+1)))
+            rslt[[r]] <- goodZeroes(dply,xlo,xhi)
+        } else {
+            p1  <- polynomial(c(c1,r))
+            p2  <- polynomial(c(a,b))
+            ply <- ply + Kpa[r]*p1*p2^r
+        }
+    }
+    if(type=="dip") return(rslt)
+#
+# Take the derivative of ply.
+    dply <- deriv(ply)
+#
+# Return the "good" zeroes.
+    goodZeroes(dply,xlo,xhi)
+}})
+@
+
+
 1.4
 log
 @Cosmetic change; running index changed from "j" to "r".
 @
 text
-@turnPts <- function(a,b,v,Kpa,xlo,xhi) {
-#
-# Construct the polynomial.
-    q <- length(v)
-    rmax  <- suppressWarnings(max(which(Kpa > 0)))
+@d1 11
+a11 1
+turnPts <- function(a,b,v,Kpa,xlo,xhi) {
+d16 1
+a16 1
     if(rmax < 1) return(as.polynomial(0))
-    Kpa <- Kpa[1:rmax]
-    vq <- v[q]
+d19 1
+a19 1
     ply <- 0
-    for(r in 1:rmax) {
-        vqmr <- if(r < q) v[q-r] else 0
+d22 10
+a31 3
         p1   <- polynomial(c(vqmr-vq,r))
         p2   <- polynomial(c(a,b))
         ply  <- ply + Kpa[r]*p1*p2^r
-    }
-#
+d33 1
+d35 2
+a36 8
 # Take its derivative.
     dply <- deriv(as.polylist(ply))[[1]]
 #
@@ -63,7 +117,8 @@ text
     rrr  <- sapply(zzz,function(z){isTRUE(all.equal(Im(z),0))})
     if(!any(rrr)) return(numeric(0))
     zzz  <- Re(zzz[rrr])
-#
+d38 3
+a40 4
 # Return those zeroes that lie in the interval [xlo,xhi]
     ok   <- xlo <= zzz & zzz <= xhi
     zzz[ok]

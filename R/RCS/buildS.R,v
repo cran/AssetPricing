@@ -1,10 +1,15 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks
-	rolf:1.6; strict;
+	rolf:1.7; strict;
 comment	@# @;
 
+
+1.7
+date	2014.01.27.08.59.11;	author rolf;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2012.11.20.02.40.45;	author rolf;	state Exp;
@@ -44,12 +49,10 @@ checking for infelicities.
 @
 
 
-1.6
+1.7
 log
-@Made the parent environment of "S" equal to globalenv()
-rather than new.env().  Prevents the popping up of a
-namespace message when a saved workspace containing such
-an "S" function is loaded.
+@Removed the check on time values being out of range.
+Dunno why. (????)
 @
 text
 @buildS <- function(alpha,beta,kn,tmax) {
@@ -115,8 +118,8 @@ text
 	eps <- sqrt(.Machine$double.eps)
         if(any(x < -eps | x > kn[K]+eps))
 		stop("At least one price value out of range.\n")
-        if(any(t < -eps | t > tmax+eps))
-		stop("At least one time value out of range.\n")
+        #if(any(t < -eps | t > tmax+eps))
+	#	stop("At least one time value out of range.\n")
         k <- cut(x,c(0,kn),include.lowest=TRUE,labels=1:K)
         k <- as.numeric(levels(k)[k])
         a <- lapply(k,function(i,alpha,t){alpha[[i]](t)},alpha=alpha,t=t)
@@ -136,6 +139,21 @@ text
     parent.env(environment(S)) <- globalenv()
     return(S)
 }
+@
+
+
+1.6
+log
+@Made the parent environment of "S" equal to globalenv()
+rather than new.env().  Prevents the popping up of a
+namespace message when a saved workspace containing such
+an "S" function is loaded.
+@
+text
+@d64 2
+a65 2
+        if(any(t < -eps | t > tmax+eps))
+		stop("At least one time value out of range.\n")
 @
 
 

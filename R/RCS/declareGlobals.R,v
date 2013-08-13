@@ -1,0 +1,29 @@
+head	1.1;
+access;
+symbols;
+locks
+	rolf:1.1; strict;
+comment	@# @;
+
+
+1.1
+date	2014.01.27.08.25.10;	author rolf;	state Exp;
+branches;
+next	;
+
+
+desc
+@Avoids warnings about "no visible binding" in respect of objects
+assigned in environments.
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@if(getRversion() >= "2.15.1")
+    utils::globalVariables(c("gpr","dS","alpha","epsilon",
+                             "stabilize","type","lambda"))
+@

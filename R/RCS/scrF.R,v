@@ -1,10 +1,15 @@
-head	1.9;
+head	1.10;
 access;
 symbols;
 locks
-	rolf:1.9; strict;
+	rolf:1.10; strict;
 comment	@# @;
 
+
+1.10
+date	2014.01.27.08.35.32;	author rolf;	state Exp;
+branches;
+next	1.9;
 
 1.9
 date	2012.11.06.21.20.08;	author rolf;	state Exp;
@@ -58,28 +63,35 @@ be solved for v.
 @
 
 
-1.9
+1.10
 log
-@Comments re-written.
+@Revised to be compatible with use of ode() rather than with
+the roll-your-own Runge-Kutte procedure.
 @
 text
-@scrF  <- function(v,tt,op=FALSE) {
+@scrF  <- function(tt,v,parms,...) {
 #
-# Note:  The object lambda and type are (always) assigned in the
-# environment of scrF.  When scrF is called by xsolve.disc(), the
-# vector "x" of *possible* prices is assigned in the environment
-# of scrF.  When scrF is called by vsolve() the pricing policy "x"
-# is assigned in the environment of scrF.  When scrF is called by
-# xsolve.pwl() the lists "alpha" and "beta" of coefficient functions
-# and knot vector "kn" for the piecewise linear representation of
-# S(x,t) are assigned in the environment of scrF.
+# The argument "parms" is a dummy, required by ode().  The "..."
+# argument is not used.  The objects lambda, type and stabilize are
+# (always) assigned in the environment of scrF.  When scrF is called
+# by xsolve.disc(), the vector "x" of *possible* prices is assigned
+# in the environment of scrF.  When scrF is called by vsolve()
+# the pricing policy "x" is assigned in the environment of scrF.
+# When scrF is called by xsolve.pwl() the lists "alpha" and "beta" of
+# coefficient functions and knot vector "kn" for the piecewise linear
+# representation of S(x,t) are assigned in the environment of scrF.
 #
-# The value of this function is either vdot = ``script F''(v,t),
-# the (unstated :-( ) vectorized version of equation (2) of the
-# paper, *or* when op=TRUE the vector of optimal prices.  (The latter is
-# applicable only in the case of discrete prices or of a piecewise
-# linear price sensitivity function.)
-
+# The value of this function is a list whose entries are:
+#
+# (a) When this function is called by vsolve (whence the prices
+# are given): just vdot = ``script F''(v,t), the (unstated :-( )
+# vectorized version of equation (2) of Banerjee and Turner (2012)
+# (b) When this function is called by xsolve.disc (discrete prices)
+# or by xsolve.pwl() (piecewise linear price sensitivity function):
+# vdot, x = the vector of optimal prices and vdlit=vdot (again).
+# The latter two list entries are the "global values that are required
+# at each point".  See the description of the argument "func" to ode()
+# in the help for ode().
 E <- parent.env(environment())
 if(is.null(E$x)) {
 # Here scrF is being called by xsolve.pwl() and the price elasticity
@@ -95,15 +107,17 @@ if(is.null(E$x)) {
 		jtop <- min(q,jmax)
 		Kpa  <- gpr[1:jtop]
 		if(jtop < jmax)
-			Kpa[jtop] <- Kpa[jtop] + environment(cev)$alpha*(1-sum(Kpa))
-		x[[q]] <- getPossPrices(v[1:q],tt,E$alpha,E$beta,E$kn,Kpa)
+			Kpa[jtop] <- Kpa[jtop] +
+                                     environment(cev)$alpha*(1-sum(Kpa))
+		x[[q]] <- getPossPrices(v[1:q],tt,E$alpha,E$beta,
+                                        E$kn,Kpa,type=type)
 	}
 } else if(inherits(x,"flap")) {
 # Here scrF is being called by vsolve() --- pricing policy is given
 # so x supplies the actual prices. No optimization to be done,
-# so just return the expected values.
+# so just return the derivatives of the expected values.
 	xx <- sapply(x,function(f,t){f(t)},t=tt)
-	return(lambda(tt)*(-v + cev(xx,tt,v,type)))
+	return(list(vdot=lambda(tt)*(-v + cev(xx,tt,v,type))))
 }
 
 # At this point either scrF was called by xsolve.pwl() and the
@@ -114,11 +128,60 @@ if(is.null(E$x)) {
 # is now available and we can maximize over this vector.
 R <- cev(x,tt,v,type,maximize=TRUE)
 
+# The object R consists of the expected values at the optimum prices
+# (both discrete and pwl settings).  It has an attrbute consisting
+# of the actual optimum prices; Return the vdot values *at* the
+# optimum prices, and the optimum prices.
+vdot <- lambda(tt)*(R - v)
+xopt <- attr(R,"xopt")
+if(stabilize) assign("xback",xopt,envir=environment(cev))
+list(vdot=vdot,x=xopt,vdlit=vdot) # "lit" for literal.
+}
+@
+
+
+1.9
+log
+@Comments re-written.
+@
+text
+@d1 1
+a1 1
+scrF  <- function(v,tt,op=FALSE) {
+d3 9
+a11 8
+# Note:  The object lambda and type are (always) assigned in the
+# environment of scrF.  When scrF is called by xsolve.disc(), the
+# vector "x" of *possible* prices is assigned in the environment
+# of scrF.  When scrF is called by vsolve() the pricing policy "x"
+# is assigned in the environment of scrF.  When scrF is called by
+# xsolve.pwl() the lists "alpha" and "beta" of coefficient functions
+# and knot vector "kn" for the piecewise linear representation of
+# S(x,t) are assigned in the environment of scrF.
+d13 11
+a23 6
+# The value of this function is either vdot = ``script F''(v,t),
+# the (unstated :-( ) vectorized version of equation (2) of the
+# paper, *or* when op=TRUE the vector of optimal prices.  (The latter is
+# applicable only in the case of discrete prices or of a piecewise
+# linear price sensitivity function.)
+
+d39 4
+a42 2
+			Kpa[jtop] <- Kpa[jtop] + environment(cev)$alpha*(1-sum(Kpa))
+		x[[q]] <- getPossPrices(v[1:q],tt,E$alpha,E$beta,E$kn,Kpa)
+d47 1
+a47 1
+# so just return the expected values.
+d49 1
+a49 1
+	return(lambda(tt)*(-v + cev(xx,tt,v,type)))
+d60 8
+a67 4
 # The optimum prices have been determined (both discrete and
 # pwl settings).  If "op" is true we want the optimum prices;
 # otherwise we want the vdot values *at* the optimum prices.
 if(op) attr(R,"xopt") else lambda(tt)*(R - v)
-}
 @
 
 
