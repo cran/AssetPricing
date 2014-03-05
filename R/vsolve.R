@@ -1,5 +1,5 @@
 vsolve <- function(S,lambda,gprob=NULL,tmax=NULL,x,nout=300,
-                       alpha=NULL,salval=0,method="lsoda") {
+                   alpha=NULL,salval=0,method="lsoda",verbInt=0) {
 #
 # Function vsolve to solve numerically the system of d.e.'s for the
 # value v_q(t) of a stock of q items at time t given a ***general***
@@ -119,8 +119,12 @@ vsolve <- function(S,lambda,gprob=NULL,tmax=NULL,x,nout=300,
         lambda <- with(list(lambda=lambda),function(t){rep(lambda,length(t))})
     }
 
-    environment(scrF)    <- new.env()
-    environment(cev)     <- new.env()
+
+# Renew the environment of cev() and scrF() to prevent old remnants hanging
+# around and thereby instigating spurious results.
+environment(cev) <- new.env()
+environment(scrF) <- new.env()
+
 #
     assign("dS",dS,envir=environment(cev))
     assign("gpr",gpr,envir=environment(cev))
@@ -133,9 +137,12 @@ vsolve <- function(S,lambda,gprob=NULL,tmax=NULL,x,nout=300,
 # Do some setting up/initializing:
     tvec  <- seq(0,tmax,length=nout)
     v     <- (1:qmax)*salval
+    info  <- new.env()
+    info$st.first <- info$st.last <- Sys.time()
 
 # Solve the differential equation.
-odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
+odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method,
+               verbInt=verbInt,tmax=tmax,info=info)
 
 # The functions in the object x are ``non-parametric'' functions;
 # they could have been defined over a larger interval than [0,tmax]

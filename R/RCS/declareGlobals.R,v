@@ -1,10 +1,15 @@
-head	1.1;
+head	1.2;
 access;
 symbols;
 locks
-	rolf:1.1; strict;
+	rolf:1.2; strict;
 comment	@# @;
 
+
+1.2
+date	2014.02.27.00.34.00;	author rolf;	state Exp;
+branches;
+next	1.1;
 
 1.1
 date	2014.01.27.08.25.10;	author rolf;	state Exp;
@@ -18,12 +23,23 @@ assigned in environments.
 @
 
 
+1.2
+log
+@Added "x" to globals declared.
+@
+text
+@if(getRversion() >= "2.15.1")
+    utils::globalVariables(c("gpr","dS","alpha","epsilon",
+                             "stabilize","type","lambda","x"))
+@
+
+
 1.1
 log
 @Initial revision
 @
 text
-@if(getRversion() >= "2.15.1")
-    utils::globalVariables(c("gpr","dS","alpha","epsilon",
+@d3 1
+a3 1
                              "stabilize","type","lambda"))
 @

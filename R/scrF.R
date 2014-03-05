@@ -1,7 +1,7 @@
-scrF  <- function(tt,v,parms,...) {
+scrF <- function(tt,v,parms,verbInt,tmax,info,...) {
 #
 # The argument "parms" is a dummy, required by ode().  The "..."
-# argument is not used.  The objects lambda, type and stabilize are
+# argument is not used.  The objects lambda, type, gpr and stabilize are
 # (always) assigned in the environment of scrF.  When scrF is called
 # by xsolve.disc(), the vector "x" of *possible* prices is assigned
 # in the environment of scrF.  When scrF is called by vsolve()
@@ -13,7 +13,7 @@ scrF  <- function(tt,v,parms,...) {
 # The value of this function is a list whose entries are:
 #
 # (a) When this function is called by vsolve (whence the prices
-# are given): just vdot = ``script F''(v,t), the (unstated :-( )
+# are given): just vdot = ``script F''(v,t), the (unstated :-( ))
 # vectorized version of equation (2) of Banerjee and Turner (2012)
 # (b) When this function is called by xsolve.disc (discrete prices)
 # or by xsolve.pwl() (piecewise linear price sensitivity function):
@@ -46,6 +46,7 @@ if(is.null(E$x)) {
 # so x supplies the actual prices. No optimization to be done,
 # so just return the derivatives of the expected values.
 	xx <- sapply(x,function(f,t){f(t)},t=tt)
+        if(verbInt > 0) progRep(info,verbInt,tt,tmax)
 	return(list(vdot=lambda(tt)*(-v + cev(xx,tt,v,type))))
 }
 
@@ -55,7 +56,7 @@ if(is.null(E$x)) {
 # was provided in the vector x which was assigned in the environment
 # of this function.  In either case the vector of possible prices
 # is now available and we can maximize over this vector.
-R <- cev(x,tt,v,type,maximize=TRUE)
+R <- try(cev(x,tt,v,type,maximize=TRUE))
 
 # The object R consists of the expected values at the optimum prices
 # (both discrete and pwl settings).  It has an attrbute consisting
@@ -64,5 +65,6 @@ R <- cev(x,tt,v,type,maximize=TRUE)
 vdot <- lambda(tt)*(R - v)
 xopt <- attr(R,"xopt")
 if(stabilize) assign("xback",xopt,envir=environment(cev))
+if(verbInt > 0) progRep(info,verbInt,tt,tmax)
 list(vdot=vdot,x=xopt,vdlit=vdot) # "lit" for literal.
 }

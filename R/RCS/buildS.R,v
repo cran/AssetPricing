@@ -1,10 +1,15 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks
-	rolf:1.7; strict;
+	rolf:1.8; strict;
 comment	@# @;
 
+
+1.8
+date	2014.02.27.01.10.29;	author rolf;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2014.01.27.08.59.11;	author rolf;	state Exp;
@@ -49,10 +54,9 @@ checking for infelicities.
 @
 
 
-1.7
+1.8
 log
-@Removed the check on time values being out of range.
-Dunno why. (????)
+@Got rid of use of new.env(); replaced it by a with() construction.
 @
 text
 @buildS <- function(alpha,beta,kn,tmax) {
@@ -113,7 +117,8 @@ text
         stop("S(0,t) is not equal to 1 for some \"t\".\n")
 
 # OK, we're good to go.
-    S <- function(x,t) {
+    S <- local({
+        function(x,t) {
 	K <- length(kn)
 	eps <- sqrt(.Machine$double.eps)
         if(any(x < -eps | x > kn[K]+eps))
@@ -128,8 +133,7 @@ text
         b <- matrix(unlist(b),nrow=length(x),byrow=TRUE)
         m <- a + b*x
         if(any(dim(m)==1)) as.vector(m) else m
-    }
-    environment(S) <- new.env()
+    }})
     assign("alpha",alpha,envir=environment(S))
     assign("beta",beta,envir=environment(S))
     assign("kn",kn,envir=environment(S))
@@ -139,6 +143,22 @@ text
     parent.env(environment(S)) <- globalenv()
     return(S)
 }
+@
+
+
+1.7
+log
+@Removed the check on time values being out of range.
+Dunno why. (????)
+@
+text
+@d59 2
+a60 1
+    S <- function(x,t) {
+d75 1
+a75 2
+    }
+    environment(S) <- new.env()
 @
 
 

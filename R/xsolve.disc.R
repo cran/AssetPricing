@@ -1,5 +1,5 @@
 xsolve.disc <- function(S,lambda,gprob,tmax,qmax,prices,nout,type,
-                        alpha,salval,epsilon,method) {
+                        alpha,salval,epsilon,method,verbInt) {
 #
 # Function xsolve.disc to solve numerically the system of d.e.'s
 # for the value v_q(t) of a stock of q items at time t, using the
@@ -54,15 +54,17 @@ xsolve.disc <- function(S,lambda,gprob,tmax,qmax,prices,nout,type,
     		stop("At least one entry of \"S\" is NOT a function.\n")
     	} else if(is.function(S)) {
     	oldS <- S
-    	S <- function(x,t,n) {oldS(x,t)^n}
-    	environment(S) <- new.env()
-    	assign("oldS",oldS,envir=environment(S))
+    	S    <- with(list(oldS=S),function(x,t,n) {oldS(x,t)^n})
     } else {
     	stop("Argument \"S\" must be either a function or a list of functions.\n")
     }
 
-    environment(scrF)    <- new.env()
-    environment(cev)     <- new.env()
+# Renew the environments of the functions into which objects
+# are assigned to prevent old remnants hanging around and thereby
+# instigating spurious results.
+environment(scrF) <- new.env()
+environment(cev) <- new.env()
+
 #
     assign("dS",S,envir=environment(cev))  # "dS" to make notation compatible with
                                            # the "smooth" case.
@@ -73,13 +75,17 @@ xsolve.disc <- function(S,lambda,gprob,tmax,qmax,prices,nout,type,
     assign("x",prices,envir=environment(scrF))
     assign("lambda",lambda,envir=environment(scrF))
     assign("type",type,envir=environment(scrF))
+    assign("gpr",gpr,envir=environment(scrF))
     assign("stabilize",epsilon>0,envir=environment(scrF))
 
 # Do some setting up/initializing.
     tvec  <- seq(0,tmax,length=nout)
     v     <- (1:qmax)*salval
+    info  <- new.env()
+    info$st.first <- info$st.last <- Sys.time()
 
 # Solve the differental equation:
-    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
+    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method,verbInt=verbInt,
+                   tmax=tmax,info=info)
     putAway(odeRslt,type,jmax,qmax,soltype="disc",x=NULL,prices=prices)
 }

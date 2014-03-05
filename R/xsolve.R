@@ -1,5 +1,6 @@
 xsolve <- function(S,lambda,gprob=1,tmax=NULL,qmax,prices=NULL,nout=300,
-                   type="sip",alpha=NULL,salval=0,epsilon=NULL,method="lsoda") {
+                   type="sip",alpha=NULL,salval=0,epsilon=NULL,
+                   method="lsoda",verbInt=0) {
 #
 # Dispatch the problem to one of xsolve.cont(), xsolve.disc(),
 # xsolve.pwl(), depending on the nature of the price sensitivity
@@ -21,10 +22,10 @@ xsolve <- function(S,lambda,gprob=1,tmax=NULL,qmax,prices=NULL,nout=300,
 
     switch(EXPR = soltype,
 	cont = xsolve.cont(S,lambda,gprob,tmax,qmax,nout,type,
-                           alpha,salval,method=method),
+                           alpha,salval,method=method,verbInt=verbInt),
 	disc = xsolve.disc(S,lambda,gprob,tmax,qmax,prices,nout,type,
-                           alpha,salval,epsilon,method=method),
+                           alpha,salval,epsilon,method=method,verbInt=verbInt),
 	pwl  = xsolve.pwl(S,lambda,gprob,tmax,qmax,nout,type,
-                           alpha,salval,epsilon,method=method)
+                           alpha,salval,epsilon,method=method,verbInt=verbInt)
     )
 }

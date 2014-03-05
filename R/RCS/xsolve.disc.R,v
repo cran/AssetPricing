@@ -1,10 +1,20 @@
-head	1.8;
+head	1.10;
 access;
 symbols;
 locks
-	rolf:1.8; strict;
+	rolf:1.10; strict;
 comment	@# @;
 
+
+1.10
+date	2014.02.27.01.07.24;	author rolf;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	2014.02.27.00.31.47;	author rolf;	state Exp;
+branches;
+next	1.8;
 
 1.8
 date	2014.01.27.08.42.16;	author rolf;	state Exp;
@@ -53,14 +63,13 @@ of discrete prices.
 @
 
 
-1.8
+1.10
 log
-@Revised to incorporate the new smoothing (reducing jumps)
-procedure.  See help file.
+@Got rid of revising environments of functions to new.env().
 @
 text
 @xsolve.disc <- function(S,lambda,gprob,tmax,qmax,prices,nout,type,
-                        alpha,salval,epsilon,method) {
+                        alpha,salval,epsilon,method,nverb) {
 #
 # Function xsolve.disc to solve numerically the system of d.e.'s
 # for the value v_q(t) of a stock of q items at time t, using the
@@ -115,15 +124,11 @@ text
     		stop("At least one entry of \"S\" is NOT a function.\n")
     	} else if(is.function(S)) {
     	oldS <- S
-    	S <- function(x,t,n) {oldS(x,t)^n}
-    	environment(S) <- new.env()
-    	assign("oldS",oldS,envir=environment(S))
+    	S    <- with(list(oldS=S),function(x,t,n) {oldS(x,t)^n})
     } else {
     	stop("Argument \"S\" must be either a function or a list of functions.\n")
     }
 
-    environment(scrF)    <- new.env()
-    environment(cev)     <- new.env()
 #
     assign("dS",S,envir=environment(cev))  # "dS" to make notation compatible with
                                            # the "smooth" case.
@@ -139,11 +144,47 @@ text
 # Do some setting up/initializing.
     tvec  <- seq(0,tmax,length=nout)
     v     <- (1:qmax)*salval
+    info  <- new.env()
+    info$ncall <- 0
+    info$ist   <- Sys.time()
 
 # Solve the differental equation:
-    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
+    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method,nverb=nverb,
+                   tmax=tmax,info=info)
     putAway(odeRslt,type,jmax,qmax,soltype="disc",x=NULL,prices=prices)
 }
+@
+
+
+1.9
+log
+@Changed to accommodate first attempt at getting progress reports.
+@
+text
+@d57 1
+a57 3
+    	S <- function(x,t,n) {oldS(x,t)^n}
+    	environment(S) <- new.env()
+    	assign("oldS",oldS,envir=environment(S))
+a61 2
+    environment(scrF)    <- new.env()
+    environment(cev)     <- new.env()
+@
+
+
+1.8
+log
+@Revised to incorporate the new smoothing (reducing jumps)
+procedure.  See help file.
+@
+text
+@d2 1
+a2 1
+                        alpha,salval,epsilon,method) {
+d81 3
+d86 2
+a87 1
+    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
 @
 
 

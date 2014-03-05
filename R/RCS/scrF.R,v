@@ -1,10 +1,20 @@
-head	1.10;
+head	1.12;
 access;
 symbols;
 locks
-	rolf:1.10; strict;
+	rolf:1.12; strict;
 comment	@# @;
 
+
+1.12
+date	2014.02.27.01.04.49;	author rolf;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	2014.02.27.00.28.48;	author rolf;	state Exp;
+branches;
+next	1.10;
 
 1.10
 date	2014.01.27.08.35.32;	author rolf;	state Exp;
@@ -63,13 +73,13 @@ be solved for v.
 @
 
 
-1.10
+1.12
 log
-@Revised to be compatible with use of ode() rather than with
-the roll-your-own Runge-Kutte procedure.
+@Wrapped in local().
 @
 text
-@scrF  <- function(tt,v,parms,...) {
+@scrF <- local({
+function(tt,v,parms,nverb,tmax,info,...) {
 #
 # The argument "parms" is a dummy, required by ode().  The "..."
 # argument is not used.  The objects lambda, type and stabilize are
@@ -84,7 +94,7 @@ text
 # The value of this function is a list whose entries are:
 #
 # (a) When this function is called by vsolve (whence the prices
-# are given): just vdot = ``script F''(v,t), the (unstated :-( )
+# are given): just vdot = ``script F''(v,t), the (unstated :-( ))
 # vectorized version of equation (2) of Banerjee and Turner (2012)
 # (b) When this function is called by xsolve.disc (discrete prices)
 # or by xsolve.pwl() (piecewise linear price sensitivity function):
@@ -135,8 +145,53 @@ R <- cev(x,tt,v,type,maximize=TRUE)
 vdot <- lambda(tt)*(R - v)
 xopt <- attr(R,"xopt")
 if(stabilize) assign("xback",xopt,envir=environment(cev))
-list(vdot=vdot,x=xopt,vdlit=vdot) # "lit" for literal.
+if(nverb > 0) {
+   info$ncall <- info$ncall+1
+   lnc <- info$ncall
+   if(lnc %% nverb == 0) {
+      ist <- info$ist
+      cst <- Sys.time()
+      elt <- cst - ist
+      units(elt) <- "mins"
+      elt <- as.vector(elt)
+      ttg <- max(elt*(tmax-tt)/tt,0)
+      ttg <- sprintf("%4.1f",round(ttg,1))
+      cat("Approximately",ttg,"minutes to go.\n")
+   }
 }
+
+list(vdot=vdot,x=xopt,vdlit=vdot) # "lit" for literal.
+}})
+@
+
+
+1.11
+log
+@First attempt at getting progress reports.
+@
+text
+@d1 2
+a2 1
+scrF <- function(tt,v,parms,nverb,tmax,info,...) {
+d84 1
+a84 1
+}
+@
+
+
+1.10
+log
+@Revised to be compatible with use of ode() rather than with
+the roll-your-own Runge-Kutte procedure.
+@
+text
+@d1 1
+a1 1
+scrF  <- function(tt,v,parms,...) {
+d16 1
+a16 1
+# are given): just vdot = ``script F''(v,t), the (unstated :-( )
+d67 15
 @
 
 

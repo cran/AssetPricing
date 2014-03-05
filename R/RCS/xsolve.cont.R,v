@@ -1,10 +1,20 @@
-head	1.16;
+head	1.18;
 access;
 symbols;
 locks
-	rolf:1.16; strict;
+	rolf:1.18; strict;
 comment	@# @;
 
+
+1.18
+date	2014.02.27.01.08.46;	author rolf;	state Exp;
+branches;
+next	1.17;
+
+1.17
+date	2014.02.27.00.32.14;	author rolf;	state Exp;
+branches;
+next	1.16;
 
 1.16
 date	2014.01.27.08.41.04;	author rolf;	state Exp;
@@ -93,14 +103,13 @@ via Runge-Kutta, in the continuous price case.
 @
 
 
-1.16
+1.18
 log
-@Revised to be compatible with the ode() function rather than
-with the roll-your-own Runge-Kutte procedure.
+@Got rid of revising environments of functions to new.env().
 @
 text
 @xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nout,type,
-                        alpha,salval,method) {
+                        alpha,salval,method,nverb) {
 #
 # Function xsolve.cont to solve numerically the system of d.e.'s for
 # the optimum price x_q(t) of an item of stock when there are q
@@ -165,8 +174,7 @@ text
                                "\"jmax\" = ",jmax,".\n",sep=""))
     	dS <- list()
     	for(i in 1:jmax) {
-    		xxx  <- deriv3(S[[i]],c("x","t"),function.arg=c("x","t"))
-    		environment(xxx) <- new.env()
+    		xxx  <- local(deriv3(S[[i]],c("x","t"),function.arg=c("x","t")))
     		pars <- attr(S[[i]],"parvec")
     		for(nm in names(pars)) {
     			assign(nm,pars[nm],envir=environment(xxx))
@@ -176,17 +184,12 @@ text
     } else {
     	pars <- attr(S,"parvec")
     	S <- substitute(a^b,list(a=S[[1]],b=quote(n)))
-    	dS <- deriv3(S,c("x","t"),function.arg=c("x","t","n"))
-    	environment(dS) <- new.env()
+    	dS <- local(deriv3(S,c("x","t"),function.arg=c("x","t","n")))
     	for(nm in names(pars)) {
     		assign(nm,pars[nm],envir=environment(dS))
     	}
     }
 
-    environment(vupdate) <- new.env()
-    environment(scrG)    <- new.env()
-    environment(initx)   <- new.env()
-    environment(cev)     <- new.env()
 #
     assign("dS",dS,envir=environment(vupdate))
     assign("dS",dS,envir=environment(scrG))
@@ -207,14 +210,58 @@ text
 #
     assign("type",type,envir=environment(scrG))
 
-# Set up the vector of "out" times and initialize.
+# Do some setting up/initializing:
     tvec  <- seq(0,tmax,length=nout)
     v     <- (1:qmax)*salval
     x     <- initx(v,type)
+    info  <- new.env()
+    info$ncall <- 0
+
 # Solve the differential equation.
-odeRslt <- ode(x,tvec,scrG,parms=NULL,method=method)
+odeRslt <- ode(x,tvec,scrG,parms=NULL,method=method,nverb=nverb,
+               tmax=tmax,info=info)
 putAway(odeRslt,type,jmax,qmax,soltype="cont",x=NULL,prices=NULL)
 }
+@
+
+
+1.17
+log
+@Changed to accommodate first attempt at getting progress reports.
+@
+text
+@d67 1
+a67 2
+    		xxx  <- deriv3(S[[i]],c("x","t"),function.arg=c("x","t"))
+    		environment(xxx) <- new.env()
+d77 1
+a77 2
+    	dS <- deriv3(S,c("x","t"),function.arg=c("x","t","n"))
+    	environment(dS) <- new.env()
+a82 4
+    environment(vupdate) <- new.env()
+    environment(scrG)    <- new.env()
+    environment(initx)   <- new.env()
+    environment(cev)     <- new.env()
+@
+
+
+1.16
+log
+@Revised to be compatible with the ode() function rather than
+with the roll-your-own Runge-Kutte procedure.
+@
+text
+@d2 1
+a2 1
+                        alpha,salval,method) {
+d109 1
+a109 1
+# Set up the vector of "out" times and initialize.
+d113 3
+d117 2
+a118 1
+odeRslt <- ode(x,tvec,scrG,parms=NULL,method=method)
 @
 
 

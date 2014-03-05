@@ -2,7 +2,7 @@
 # Export pretty-well everything except ".newt", and "plot.stepfun".
 export(a2sf, getPossPrices, plot.flap, turnPts, buildS, getS, vupdate, cev,
 i2qj, putAway, xsolve.cont, initx, qj2i, xsolve.disc, findSolType,
-xsolve.pwl, plot.AssetPricing, scrF, scrG, vsolve, xsolve)
+xsolve.pwl, plot.AssetPricing, scrF, scrG, vsolve, xsolve, progRep)
 
 # Import polynom and deSolve:
 import(polynom, deSolve)

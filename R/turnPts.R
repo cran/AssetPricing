@@ -1,4 +1,5 @@
 turnPts <- local({
+
     goodZeroes <- function(dp,xlo,xhi){
         zzz  <- polyroot(dp)
         rrr  <- sapply(zzz,function(z){isTRUE(all.equal(Im(z),0))})

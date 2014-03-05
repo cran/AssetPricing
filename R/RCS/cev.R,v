@@ -1,10 +1,15 @@
-head	1.10;
+head	1.11;
 access;
 symbols;
 locks
-	rolf:1.10; strict;
+	rolf:1.11; strict;
 comment	@# @;
 
+
+1.11
+date	2014.02.27.01.06.40;	author rolf;	state Exp;
+branches;
+next	1.10;
 
 1.10
 date	2014.01.27.08.23.36;	author rolf;	state Exp;
@@ -63,13 +68,13 @@ arrival at time t.
 @
 
 
-1.10
+1.11
 log
-@Major change to the way smoothing is handled for xsolve.disc()
-and xsolve.pwl().  See Changelog and doc'n.
+@Wrapped in local().
 @
 text
-@cev <- function(x,t,v,type,maximize=FALSE) {
+@cev <- local({
+function(x,t,v,type,maximize=FALSE) {
 #
 # Conditional expected value (given an arrival at
 # the time in question).  Note that objects dS, gpr, alpha
@@ -189,6 +194,21 @@ if(maximize) {
     }
 }
 R
+}})
+@
+
+
+1.10
+log
+@Major change to the way smoothing is handled for xsolve.disc()
+and xsolve.pwl().  See Changelog and doc'n.
+@
+text
+@d1 2
+a2 1
+cev <- function(x,t,v,type,maximize=FALSE) {
+d122 1
+a122 1
 }
 @
 

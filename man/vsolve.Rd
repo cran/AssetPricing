@@ -12,7 +12,7 @@
 }
 \usage{
     vsolve(S, lambda, gprob, tmax=NULL, x, nout=300,
-                   alpha=NULL, salval=0, method="lsoda")
+           alpha=NULL, salval=0, method="lsoda",verbInt=0)
 }
 \arguments{
   \item{S}{
@@ -77,6 +77,12 @@
   by the differential equation solver \code{ode}.  There is
   a fairly large number of possible methods.  See
   \code{\link[deSolve]{ode}()} for details.
+}
+  \item{verbInt}{
+  A scalar value which controls \dQuote{verbosity}.
+  If \code{verbInt > 0} then a \dQuote{progress report}
+  is printed every \code{verbInt} \emph{seconds} (roughly).
+  See \code{\link{xsolve}()} for a bit more detail.
 }
 }
 
@@ -169,14 +175,12 @@ doi: 10.1016/j.omega.2011.10.001.
 S <- expression(exp(-kappa*x/(1+gamma*exp(-beta*t))))
 attr(S,"parvec") <- c(kappa=10/1.5,gamma=9,beta=1)
 lambda1 <- function(tt){
-#	eps <- sqrt(.Machine$double.eps)
 	84*(1-tt)
 }
 
 # Optimal pricing policy assuming customers arrive singly:
 X <- xsolve(S=S,lambda=lambda1,gprob=1,tmax=1,qmax=5)
 lambda2 <- function(tt){
-#	eps <- sqrt(.Machine$double.eps)
 	36*(1-tt)
 }
 # Expected values if the customers actually arrive in groups, using the

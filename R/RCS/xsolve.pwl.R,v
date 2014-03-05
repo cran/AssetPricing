@@ -1,10 +1,20 @@
-head	1.6;
+head	1.8;
 access;
 symbols;
 locks
-	rolf:1.6; strict;
+	rolf:1.8; strict;
 comment	@# @;
 
+
+1.8
+date	2014.02.27.01.09.09;	author rolf;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2014.02.27.00.32.37;	author rolf;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2014.01.27.08.43.54;	author rolf;	state Exp;
@@ -43,14 +53,13 @@ the price sensitivity function is piecewise linear in price.
 @
 
 
-1.6
+1.8
 log
-@Revised to incorporate the new smoothing (reducing jumps)
->> procedure.  See help file.
+@Got rid of revising environments of functions to new.env().
 @
 text
 @xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nout,type,
-                           alpha,salval,epsilon,method) {
+                           alpha,salval,epsilon,method,nverb) {
 #
 # Function xsolve.pwl to solve numerically the system of d.e.'s
 # for the value v_q(t) of a stock of q items at time t, using
@@ -100,7 +109,6 @@ text
     }
     
 # Stow necessary objects in the environment of scrF.
-    environment(scrF) <- new.env()
     assign("stabilize",epsilon>0,envir=environment(scrF))
     assign("type",type,envir=environment(scrF))
     assign("lambda",lambda,envir=environment(scrF))
@@ -115,7 +123,6 @@ text
     dS <- with(list(S=S),function(x,t,n) {S(x,t)^n})
 
 # Stow necessary objects in the environment of cev.
-    environment(cev) <- new.env()
     assign("dS",dS,envir=environment(cev))
     assign("gpr",gpr,envir=environment(cev))
     assign("alpha",alpha,envir=environment(cev))
@@ -124,11 +131,43 @@ text
 # Do some setting up/initializing:
     tvec  <- seq(0,tmax,length=nout)
     v     <- (1:qmax)*salval
+    info  <- new.env()
+    info$ncall <- 0
+    info$ist   <- Sys.time()
 
 # Solve the differential equation.
-    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
+    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method,nverb=nverb,
+                   tmax=tmax,info=info)
     putAway(odeRslt,type,jmax,qmax,soltype="pwl",x=NULL,prices=NULL)
 }
+@
+
+
+1.7
+log
+@Changed to accommodate first attempt at getting progress reports.
+@
+text
+@a51 1
+    environment(scrF) <- new.env()
+a65 1
+    environment(cev) <- new.env()
+@
+
+
+1.6
+log
+@Revised to incorporate the new smoothing (reducing jumps)
+>> procedure.  See help file.
+@
+text
+@d2 1
+a2 1
+                           alpha,salval,epsilon,method) {
+d76 3
+d81 2
+a82 1
+    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
 @
 
 

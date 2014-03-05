@@ -1,10 +1,15 @@
-head	1.7;
+head	1.8;
 access;
 symbols;
 locks
-	rolf:1.7; strict;
+	rolf:1.8; strict;
 comment	@# @;
 
+
+1.8
+date	2014.02.27.01.05.54;	author rolf;	state Exp;
+branches;
+next	1.7;
 
 1.7
 date	2012.01.09.00.19.09;	author rolf;	state Exp;
@@ -48,14 +53,13 @@ desc
 @
 
 
-1.7
+1.8
 log
-@Changed interally defined utility functions named "foo" to
-have more evocative names; changed call to newt() to a call
-to .newt().
+@Wrapped in local().
 @
 text
-@initx <- function (v,type) {
+@initx <- local({
+function (v,type) {
 #
 # Note that objects dS, gpr and alpha are assigned in the
 # environment of initx.
@@ -127,6 +131,22 @@ jmax <- length(gpr)
 	}
     }
     x
+}})
+@
+
+
+1.7
+log
+@Changed interally defined utility functions named "foo" to
+have more evocative names; changed call to newt() to a call
+to .newt().
+@
+text
+@d1 2
+a2 1
+initx <- function (v,type) {
+d74 1
+a74 1
 }
 @
 

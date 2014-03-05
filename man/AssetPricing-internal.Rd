@@ -9,6 +9,7 @@
 \alias{.newt}
 \alias{plot.flap}
 \alias{plot.stepfun}
+\alias{progRep}
 \alias{putAway}
 \alias{qj2i}
 \alias{scrF}
@@ -41,18 +42,19 @@ initx(v,type)
                        do.points = TRUE, pch = par("pch"), col = par("col"),
                        col.points = col, cex.points = par("cex"), col.hor = col,
                        col.vert = col, lty = par("lty"), lwd = par("lwd"), ...)
+progRep(info,verbInt,tt,tmax)
 putAway(odeRslt,type,jmax,qmax,soltype,x=NULL,prices=NULL)
 qj2i(q,j,qmax)
-scrG(tt,x,parms,...)
-scrF(tt,v,parms,...)
+scrG(tt,x,parms,verbInt,tmax,info,...)
+scrF(tt,v,parms,verbInt,tmax,info,...)
 turnPts(a,b,v,Kpa,xlo,xhi,type)
 vupdate(x,tt,type)
 xsolve.cont(S,lambda,gprob,tmax,qmax,nout,type,
-                           alpha,salval,method)
+                           alpha,salval,method,verbInt)
 xsolve.disc(S,lambda,gprob,tmax,qmax,prices,nout,type,
-                           alpha,salval,epsilon,method)
+                           alpha,salval,epsilon,method,verbInt)
 xsolve.pwl(S,lambda,gprob,tmax,qmax,nout,type,
-                           alpha,salval,epsilon,method)
+                           alpha,salval,epsilon,method,verbInt)
 }
 \details{
   These functions are auxiliary and are not intended to be called by

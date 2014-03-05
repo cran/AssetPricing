@@ -1,5 +1,5 @@
 xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nout,type,
-                        alpha,salval,method) {
+                        alpha,salval,method,verbInt) {
 #
 # Function xsolve.cont to solve numerically the system of d.e.'s for
 # the optimum price x_q(t) of an item of stock when there are q
@@ -65,7 +65,7 @@ xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nout,type,
     	dS <- list()
     	for(i in 1:jmax) {
     		xxx  <- deriv3(S[[i]],c("x","t"),function.arg=c("x","t"))
-    		environment(xxx) <- new.env()
+                environment(xxx) <- new.env()
     		pars <- attr(S[[i]],"parvec")
     		for(nm in names(pars)) {
     			assign(nm,pars[nm],envir=environment(xxx))
@@ -76,16 +76,20 @@ xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nout,type,
     	pars <- attr(S,"parvec")
     	S <- substitute(a^b,list(a=S[[1]],b=quote(n)))
     	dS <- deriv3(S,c("x","t"),function.arg=c("x","t","n"))
-    	environment(dS) <- new.env()
+        environment(dS) <- new.env()
     	for(nm in names(pars)) {
     		assign(nm,pars[nm],envir=environment(dS))
     	}
     }
 
-    environment(vupdate) <- new.env()
-    environment(scrG)    <- new.env()
-    environment(initx)   <- new.env()
-    environment(cev)     <- new.env()
+# Renew the environments of the functions into which objects
+# are assigned to prevent old remnants hanging around and thereby
+# instigating spurious results.
+environment(vupdate) <- new.env()
+environment(scrG) <- new.env()
+environment(initx) <- new.env()
+environment(cev) <- new.env()
+
 #
     assign("dS",dS,envir=environment(vupdate))
     assign("dS",dS,envir=environment(scrG))
@@ -106,11 +110,15 @@ xsolve.cont <- function(S,lambda,gprob,tmax,qmax,nout,type,
 #
     assign("type",type,envir=environment(scrG))
 
-# Set up the vector of "out" times and initialize.
+# Do some setting up/initializing:
     tvec  <- seq(0,tmax,length=nout)
     v     <- (1:qmax)*salval
     x     <- initx(v,type)
+    info  <- new.env()
+    info$st.first <- info$st.last <- Sys.time()
+
 # Solve the differential equation.
-odeRslt <- ode(x,tvec,scrG,parms=NULL,method=method)
+odeRslt <- ode(x,tvec,scrG,parms=NULL,method=method,verbInt=verbInt,
+               tmax=tmax,info=info)
 putAway(odeRslt,type,jmax,qmax,soltype="cont",x=NULL,prices=NULL)
 }

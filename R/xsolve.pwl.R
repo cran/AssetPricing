@@ -1,5 +1,5 @@
 xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nout,type,
-                           alpha,salval,epsilon,method) {
+                       alpha,salval,epsilon,method,verbInt) {
 #
 # Function xsolve.pwl to solve numerically the system of d.e.'s
 # for the value v_q(t) of a stock of q items at time t, using
@@ -47,15 +47,19 @@ xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nout,type,
                    "of the pwl price sensitivity function specified as\n",
                    "argument \"S\".\n"))
     }
+
+# Renew the environment of scrF() to prevent old remnants hanging
+# around and thereby instigating spurious results.
+environment(scrF) <- new.env()
     
 # Stow necessary objects in the environment of scrF.
-    environment(scrF) <- new.env()
     assign("stabilize",epsilon>0,envir=environment(scrF))
     assign("type",type,envir=environment(scrF))
     assign("lambda",lambda,envir=environment(scrF))
     assign("alpha",get("alpha",envir=environment(S)),envir=environment(scrF))
     assign("beta",get("beta",envir=environment(S)),envir=environment(scrF))
     assign("kn",get("kn",envir=environment(S)),envir=environment(scrF))
+    assign("gpr",gpr,envir=environment(scrF))
 #
 # There should be only one price sensitivity function. Create a new
 # function equal to the original function raised to the power "n", with
@@ -63,8 +67,11 @@ xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nout,type,
 # with the "smooth" case.
     dS <- with(list(S=S),function(x,t,n) {S(x,t)^n})
 
+# Renew the environment of cev() to prevent old remnants hanging
+# around and thereby instigating spurious results.
+environment(cev) <- new.env()
+
 # Stow necessary objects in the environment of cev.
-    environment(cev) <- new.env()
     assign("dS",dS,envir=environment(cev))
     assign("gpr",gpr,envir=environment(cev))
     assign("alpha",alpha,envir=environment(cev))
@@ -73,8 +80,11 @@ xsolve.pwl <- function(S,lambda,gprob,tmax,qmax,nout,type,
 # Do some setting up/initializing:
     tvec  <- seq(0,tmax,length=nout)
     v     <- (1:qmax)*salval
+    info  <- new.env()
+    info$st.first <- info$st.last <- Sys.time()
 
 # Solve the differential equation.
-    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
+    odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method,verbInt=verbInt,
+                   tmax=tmax,info=info)
     putAway(odeRslt,type,jmax,qmax,soltype="pwl",x=NULL,prices=NULL)
 }

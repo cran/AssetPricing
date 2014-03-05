@@ -1,4 +1,4 @@
-scrG <- function(tt,x,parms,...) {
+scrG <- function(tt,x,parms,verbInt,tmax,info,...) {
 # Note that the objects dS, gpr, alpha, and type are
 # assigned in the environment of scrG.
 #
@@ -71,5 +71,6 @@ if(type=="sip") {
 		}
 	}
 } else stop(paste("Type",type,"unrecognized.\n"))
+if(verbInt > 0) progRep(info,verbInt,tt,tmax)
 list(xdot=xdot,v=v,vdot=vdot)
 }

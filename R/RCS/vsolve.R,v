@@ -1,10 +1,20 @@
-head	1.6;
+head	1.8;
 access;
 symbols;
 locks
-	rolf:1.6; strict;
+	rolf:1.8; strict;
 comment	@# @;
 
+
+1.8
+date	2014.02.27.01.11.23;	author rolf;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	2014.02.27.00.30.17;	author rolf;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2014.01.27.08.39.32;	author rolf;	state Exp;
@@ -45,14 +55,14 @@ for the single arrival setting.
 @
 
 
-1.6
+1.8
 log
-@Revised to be compatible with the ode() function rather than with
-the roll-your-own Runge-Kutte procedure.
+@Got rid of use of new.env(); replaced it by wrapping function
+definitions in local().
 @
 text
 @vsolve <- function(S,lambda,gprob=NULL,tmax=NULL,x,nout=300,
-                       alpha=NULL,salval=0,method="lsoda") {
+                   alpha=NULL,salval=0,method="lsoda",nverb=0L) {
 #
 # Function vsolve to solve numerically the system of d.e.'s for the
 # value v_q(t) of a stock of q items at time t given a ***general***
@@ -139,8 +149,7 @@ text
         if(all(sapply(S,is.expression))) {
             dS <- list()
             for(i in 1:jmax) {
-                xxx  <- deriv3(S[[i]],c("x","t"),function.arg=c("x","t"))
-                environment(xxx) <- new.env()
+                xxx  <- local(deriv3(S[[i]],c("x","t"),function.arg=c("x","t")))
                 pars <- attr(S[[i]],"parvec")
                 for(nm in names(pars)) {
                     assign(nm,pars[nm],envir=environment(xxx))
@@ -155,8 +164,7 @@ text
 # syntax ``S[[1]]'' (a) makes ``sense'' and (b) is needed.
         pars <- attr(S,"parvec")
         S <- substitute(a^b,list(a=S[[1]],b=quote(n)))
-        dS <- deriv3(S,c("x","t"),function.arg=c("x","t","n"))
-        environment(dS) <- new.env()
+        dS <- local(deriv3(S,c("x","t"),function.arg=c("x","t","n")))
         for(nm in names(pars)) {
             assign(nm,pars[nm],envir=environment(dS))
         }
@@ -172,8 +180,6 @@ text
         lambda <- with(list(lambda=lambda),function(t){rep(lambda,length(t))})
     }
 
-    environment(scrF)    <- new.env()
-    environment(cev)     <- new.env()
 #
     assign("dS",dS,envir=environment(cev))
     assign("gpr",gpr,envir=environment(cev))
@@ -186,9 +192,13 @@ text
 # Do some setting up/initializing:
     tvec  <- seq(0,tmax,length=nout)
     v     <- (1:qmax)*salval
+    info  <- new.env()
+    info$ncall <- 0
+    info$ist   <- Sys.time()
 
 # Solve the differential equation.
-odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
+odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method,
+               nverb=nverb,tmax=tmax,info=info)
 
 # The functions in the object x are ``non-parametric'' functions;
 # they could have been defined over a larger interval than [0,tmax]
@@ -207,6 +217,41 @@ odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
     comment(x) <- c(comment(x),"Prices not necessarily optimal.")
     putAway(odeRslt,type,jmax,qmax,soltype="vsolve",x=x,prices=NULL)
 }
+@
+
+
+1.7
+log
+@Changed to accommodate first attempt at getting progress reports.
+@
+text
+@d89 1
+a89 2
+                xxx  <- deriv3(S[[i]],c("x","t"),function.arg=c("x","t"))
+                environment(xxx) <- new.env()
+d104 1
+a104 2
+        dS <- deriv3(S,c("x","t"),function.arg=c("x","t","n"))
+        environment(dS) <- new.env()
+a119 2
+    environment(scrF)    <- new.env()
+    environment(cev)     <- new.env()
+@
+
+
+1.6
+log
+@Revised to be compatible with the ode() function rather than with
+the roll-your-own Runge-Kutte procedure.
+@
+text
+@d2 1
+a2 1
+                       alpha=NULL,salval=0,method="lsoda") {
+d136 3
+d141 2
+a142 1
+odeRslt <- ode(v,tvec,scrF,parms=NULL,method=method)
 @
 
 

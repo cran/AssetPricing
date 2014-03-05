@@ -100,7 +100,7 @@ if(maximize) {
         }
     attr(R,"xopt") <- xopt
 } else {
-    S <- getS(dS,x,t,1:jmax)
+S   <- getS(dS,x,t,1:jmax)
     for(q in 1:qmax) {
         vq   <- v[q]
         jtop <- min(q,jmax)

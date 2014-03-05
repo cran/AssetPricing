@@ -1,10 +1,15 @@
-head	1.8;
+head	1.9;
 access;
 symbols;
 locks
-	rolf:1.8; strict;
+	rolf:1.9; strict;
 comment	@# @;
 
+
+1.9
+date	2014.02.27.00.31.09;	author rolf;	state Exp;
+branches;
+next	1.8;
 
 1.8
 date	2014.01.27.08.45.08;	author rolf;	state Exp;
@@ -54,14 +59,14 @@ list: xsolve.cont(), xsolve.disc(), and xsolve.pwl().
 @
 
 
-1.8
+1.9
 log
-@Revised to incorporate the new smoothing (reducing jumps)
->> procedure.  See help fi
+@Changed to accommodate first attempt at getting progress reports.
 @
 text
 @xsolve <- function(S,lambda,gprob=1,tmax=NULL,qmax,prices=NULL,nout=300,
-                   type="sip",alpha=NULL,salval=0,epsilon=NULL,method="lsoda") {
+                   type="sip",alpha=NULL,salval=0,epsilon=NULL,
+                   method="lsoda",nverb=0L) {
 #
 # Dispatch the problem to one of xsolve.cont(), xsolve.disc(),
 # xsolve.pwl(), depending on the nature of the price sensitivity
@@ -81,15 +86,38 @@ text
                                        pwl  = (.Machine$double.eps)^0.5)
     }
 
+    nverb <- as.integer(nverb)
     switch(EXPR = soltype,
 	cont = xsolve.cont(S,lambda,gprob,tmax,qmax,nout,type,
-                           alpha,salval,method=method),
+                           alpha,salval,method=method,nverb=nverb),
 	disc = xsolve.disc(S,lambda,gprob,tmax,qmax,prices,nout,type,
-                           alpha,salval,epsilon,method=method),
+                           alpha,salval,epsilon,method=method,nverb=nverb),
 	pwl  = xsolve.pwl(S,lambda,gprob,tmax,qmax,nout,type,
-                           alpha,salval,epsilon,method=method)
+                           alpha,salval,epsilon,method=method,nverb=nverb)
     )
 }
+@
+
+
+1.8
+log
+@Revised to incorporate the new smoothing (reducing jumps)
+>> procedure.  See help fi
+@
+text
+@d2 2
+a3 1
+                   type="sip",alpha=NULL,salval=0,epsilon=NULL,method="lsoda") {
+d23 1
+d26 1
+a26 1
+                           alpha,salval,method=method),
+d28 1
+a28 1
+                           alpha,salval,epsilon,method=method),
+d30 1
+a30 1
+                           alpha,salval,epsilon,method=method)
 @
 
 

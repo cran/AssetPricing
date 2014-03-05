@@ -1,3 +1,20 @@
+Version 0.1-3
+
+* Fixed some glitches with respect to the assignment of
+  "gpr" (group size probabilities) in the environments of scrF(),
+  scrG() and cev().
+  (28/02/2014)
+
+* Added the capacity to produce "progress reports" to
+  reassure the user that "something is happening".  These are invoked
+  by means of a new "verbInt" argument to xsolve() and vsolve().
+  If verbInt > 0 a progress report (rough percentage of [0,tmax]
+  left to cover; estimate of total elapsed time) is printed out
+  every verbInt seconds (approximately).
+
+  The progress reports are produced by a new function progRep().
+  (27/02/2014)
+
 Version 0.1-2
 
 * Submitted to CRAN 28/January/2014
@@ -9,6 +26,8 @@ Version 0.1-2
 Version 0.1-1
 
 * Submitted to CRAN 27/January/2014.
+  (Package was never installed on CRAN due to a problem in
+  respect of importing from the polynom and deSolve packages.)
 
 * Tidied up RCS and made sure everything is up to data with
   respect to version of the functions. (27/January/2014)

@@ -13,7 +13,8 @@
 }
 \usage{
    xsolve(S, lambda, gprob=1, tmax=NULL, qmax, prices=NULL, nout=300,
-          type="sip", alpha=NULL, salval=0, epsilon=NULL,method="lsoda")
+          type="sip", alpha=NULL, salval=0, epsilon=NULL,
+          method="lsoda",verbInt=0)
 }
 \arguments{
   \item{S}{
@@ -86,9 +87,20 @@
 }
   \item{method}{
   Character string specified the solution method to be used
-  by the differential equation solver \code{ode}.  There is
+  by the differential equation solver \code{ode()}.  There is
   a fairly large number of possible methods.  See
   \code{\link[deSolve]{ode}()} for details.
+}
+  \item{verbInt}{
+  A scalar value which controls \dQuote{verbosity}.
+  If \code{verbInt > 0} then a \dQuote{progress report} is
+  printed every \code{verbInt} \emph{seconds} (roughly).  That is
+  if the current value of \code{Sys.time()} is greater than or
+  equal to the value stored at the time of the last report, plus
+  \code{verbInt} seconds, then a new \dQuote{report} is printed out.
+  If \code{verbInt} is less than or equal to 0 then the solution
+  process runs \dQuote{silently}.  See section \bold{Progress
+  Reports} for a bit more detail.
 }
 }
 \details{
@@ -101,7 +113,8 @@
   value of the stock is solved, with the optimal price being
   determined at each step by maximizing over an appropriate finite
   discrete set.  These differential equations are solved by the
-  \code{\link[deSolve]{ode}()} from the \code{deSolve} package.
+  \code{\link[deSolve]{ode}()} function from the \code{deSolve}
+  package.
 
   The components of the argument \code{S} should be provided as
   expressions when the price sensitivity functions are assumed to
@@ -171,6 +184,17 @@ more sophisticated manner) using the package \code{deSolve}.  This
 increases the solution speed by a factor of about 7.  There will
 be (minor, it is to be hoped) numerical differences in solutions
 produced from the same input.
+}
+
+\section{Progress Reports}{
+  The \dQuote{progress reports} produced when \code{verbInt > 0}
+  consist of rough estimates of the percentage of \code{[0,tmax]}
+  (the interval over which the differential equation is being solved)
+  remaining to be covered.  A rough estimate of the total elapsed
+  time since the solution process started is also printed out.
+
+  Having \dQuote{progress reports} printed out appears to have no
+  (or at worst negligible) impact on computation time.`
 }
 
 \value{
@@ -243,7 +267,7 @@ lambda1 <- function(tt){
 	84*(1-tt)
 }
 X1 <- xsolve(S=S,lambda=lambda1,gprob=1,tmax=1,qmax=5,
-             type="sip")
+             type="sip",verbInt=5)
 # Optimal pricing policy assuming customers arrive in groups of
 # size up to 5, with group size probabilities 1/3, 4/15, 1/5, 2/15,
 # and 1/15 respectively.
@@ -251,7 +275,7 @@ lambda2 <- function(tt){
 	36*(1-tt)
 }
 X2 <- xsolve(S=S,lambda=lambda2,gprob=(5:1)/15,tmax=1,qmax=5,
-             type="sip", alpha=0.5)
+             type="sip", alpha=0.5,verbInt=5)
 
 # Note that the intensity functions lambda1() and lambda2() are
 # such that the expected total number of customers is 42 in each case.
@@ -265,7 +289,7 @@ S      <- function(x,t){
                 e
           }
 X3 <- xsolve(S=S,lambda=lambda3,gprob=1,tmax=1,qmax=5,prices=c(1,0.6),
-             type="sip")
+             type="sip",verbInt=5)
 
 # Piecewise linear price sensitivity function.
 #
@@ -276,7 +300,7 @@ X3 <- xsolve(S=S,lambda=lambda3,gprob=1,tmax=1,qmax=5,prices=c(1,0.6),
 l0 <- get("lambda",envir=environment(get("alpha",envir=environment(S))[[1]]))
 lambda4 <- function(t){apply(l0(t),1,sum)}
 X4 <- xsolve(S=S,lambda=lambda4,gprob=(5:1)/15,qmax=30,type="sip",
-                   alpha=0.5)
+                   alpha=0.5,verbInt=20)
 }
 }
 \keyword{ math }

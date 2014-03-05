@@ -1,10 +1,15 @@
-head	1.6;
+head	1.7;
 access;
 symbols;
 locks
-	rolf:1.6; strict;
+	rolf:1.7; strict;
 comment	@# @;
 
+
+1.7
+date	2014.02.27.01.05.28;	author rolf;	state Exp;
+branches;
+next	1.6;
 
 1.6
 date	2009.12.21.01.58.07;	author rolf;	state Exp;
@@ -44,14 +49,13 @@ prices.
 @
 
 
-1.6
+1.7
 log
-@Got rid of lambda.t as an argument; no calculates lambda(t)
-itself; the old value was slightly wrong in 3 out of 4
-instances!  Also changed the name of argument `t' to `tt''.
+@Wrapped in local().
 @
 text
-@vupdate <- function(x,tt,type) {
+@vupdate <- local({
+function(x,tt,type) {
 # Note that objects lambda, dS, gpr and alpha are assigned in the
 # environment of vupdate.
 N <- length(x)
@@ -92,6 +96,22 @@ if(type=="sip") {
 vdot <- lambda(tt)*(-v + cev(x,tt,v,type))
 
 list(v=v,vdot=vdot)
+}})
+@
+
+
+1.6
+log
+@Got rid of lambda.t as an argument; no calculates lambda(t)
+itself; the old value was slightly wrong in 3 out of 4
+instances!  Also changed the name of argument `t' to `tt''.
+@
+text
+@d1 2
+a2 1
+vupdate <- function(x,tt,type) {
+d43 1
+a43 1
 }
 @
 
