@@ -1,5 +1,5 @@
-d26f44d2dc0432fd18bf248c5ba0efab *Changelog
-c0189efb4402867f0abbf4a4098ef06d *DESCRIPTION
+fce4c74af9cbc338d307c2e97716dd5c *Changelog
+1f0b1065a28c7c3fa21aff5937d2a279 *DESCRIPTION
 5e5ec2e90217d8d87f00a9009575f251 *NAMESPACE
 a6603eeac77b3c44cfb5384448d4d9a0 *R/First.R
 85a4554072e5d81cfa1492373e564528 *R/RCS/First.R,v
@@ -44,7 +44,7 @@ bc8c541206fca4ebe09cb65c9cf4b768 *R/i2qj.R
 03c9f8861c0941c65c5f84f1b174e9b3 *R/initx.R
 92ed3fc6efbf89c66fed3660ada60ccc *R/newt.R
 9151b6b9bb597d37c60d91ad3876f353 *R/plot.AssetPricing.R
-4dff1836eb39d419024afa5fe3ba822d *R/plot.flap.R
+e0615fba4be6695c24e9bc0ba5ba2886 *R/plot.flap.R
 863938ffab0010642f644e97a981f8d9 *R/plot.stepfun.R
 d1083bfdcd78d7d8012632a34e02cf75 *R/progRep.R
 c5275391e3ce19445de543c20c388404 *R/putAway.R
@@ -58,11 +58,12 @@ eb72dc400e00dab666fa1bbb2cf97507 *R/turnPts.R
 14ab36650dd89a852c2a407d8cce27e7 *R/xsolve.cont.R
 704c32208e1df317f338d00c89b00b9c *R/xsolve.disc.R
 62b22787789a919c76c4c261f41534f0 *R/xsolve.pwl.R
+71ea79a518e8126e0e298632821678c7 *inst/CITATION
 489cc77594a637fcdc28a4670b212804 *inst/coa
 364d50d5ff1bf3ef7f8aacf6c9dd10c5 *inst/optimNote.tex
 b9cd3aafc999feec60d97044e28c00da *inst/plot.flap.R.old
 9c247beff375c2550c2074fbff1e22c5 *man/AssetPricing-internal.Rd
-84e6c5daefb86b36f2d59725dde6c165 *man/buildS.Rd
-3a8b516f9d4c50ba3d48d812446929e0 *man/plot.AssetPricing.Rd
-390db4cee049a41a3413e2797589bdbe *man/vsolve.Rd
-c2299dbc13dddf4ec4ee4373b134916d *man/xsolve.Rd
+c0c9bace2194cd903df0ea67788f0639 *man/buildS.Rd
+985c224094423c521907dd2297d1db40 *man/plot.AssetPricing.Rd
+34b367752fe2912eeacae3a89663439b *man/vsolve.Rd
+cbcecec7473a9c3d53f8e6d3789a2b43 *man/xsolve.Rd

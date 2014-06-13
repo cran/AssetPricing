@@ -84,7 +84,8 @@ plot.flap <- function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
     if(do.gloss) gloss[!glind] <- ""
 
 # Set up multiway array of plots.
-    if(!add) {
+    adjMfrow <- !add & (is.null(mfrow) || !is.na(mfrow))
+    if(adjMfrow) {
         if(is.null(mfrow)) {
             if(ng==1) mfrow <- c(1,1)
             else if(2 <= ng & ng <= 4) mfrow <- c(2,2)
@@ -94,8 +95,10 @@ plot.flap <- function(x,xlim=NULL,ylim=NULL,lty=NULL,cols=NULL,
         oma <- if(ng > 1 & !is.null(main)) c(0,0,2,0) else rep(0,4)
         opar <- par(mfrow=mfrow, oma=oma)
         on.exit(par(opar))
+    } else np <- 1
 
 # Set up xlab, ylab, main, main.panel and ylim, 
+    if(!add) {
         if(is.null(xlab)) xlab <- ""
         if(is.null(ylab)) ylab <- ""
         if(is.null(main)) main <- ""

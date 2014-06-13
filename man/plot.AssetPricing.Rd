@@ -115,7 +115,15 @@
   the marginal gloss.
 }
   \item{mfrow}{ The dimensions of the array(s) of panels in which
-  the functions are plotted.
+  the functions are plotted.  If this argument is left as \code{NULL}
+  then the software makes a \dQuote{sensible} choice for its value.
+  If this argument is set equal to \code{NA} then the current value
+  of \code{mfrow} for the plotting device is left \dQuote{as is}. This
+  permits the setting up of an array of panels vi a call to \code{par(mfrow=\dots)}
+  \emph{a priori} without the resulting setting being over-ridden by
+  the internal code of this plotting method.  One might wish to do this
+  e.g. for the purpose of \emph{adding} plotted material to each
+  panel.
 }
   \item{\dots}{ Extra arguments to be passed to \code{plot}
   (effectively to \code{\link{plot.function}()} or to
@@ -204,10 +212,14 @@ None.  This function exists only for its side effect, i.e.
 the production of a plot or plots.
 }
 \references{
-Banerjee, P. K. and Turner, T. R.
+P. K. Banerjee, and T. R. Turner (2012).
 A flexible model for the pricing of perishable assets.
-Omega, vol. 40, number 5, 2012, pages 533 -- 540,
+\emph{Omega} \bold{40}:5, 533--540,
 doi: 10.1016/j.omega.2011.10.001.
+
+Rolf Turner, Pradeep Banerjee and Rayomand Shahlori (2014).  Optimal
+Asset Pricing.  \emph{Journal of Statistical Software} \bold{58}:11, 1--25.
+URL http://www.jstatsoft.org/v58/i11/.
 }
 \author{Rolf Turner
   \email{r.turner@auckland.ac.nz}
@@ -222,27 +234,26 @@ doi: 10.1016/j.omega.2011.10.001.
 S <- expression(exp(-kappa*x/(1+gamma*exp(-beta*t))))
 attr(S,"parvec") <- c(kappa=10/1.5,gamma=9,beta=1)
 LAMBDA <- function(tt){
-    if(tt<0 | tt> 1) stop("Time out of range.\n")
-    36*(1-tt)
+    if(tt<0 | tt> 1) 0 else 36*(1-tt)
 }
 OUT <- xsolve(S=S,lambda=LAMBDA,gprob=(5:1)/15,tmax=1,qmax=30,
-                  nstep=1000,alpha=0.5,type="dip",nverb=20)
+                  alpha=0.5,type="dip",verbInt=2)
 GLND <- rep(FALSE,30)
 GLND[c(1:5,10,15,20,30)] <- TRUE
-plot(OUT$v,xlab="residual time",ylab="expected revenue",
+plot(OUT,witch="e",xlab="residual time",ylab="expected revenue",
      gloss=TRUE,glind=GLND)
 GRPS <- data.frame(group=rep(1:6,each=5),q=1:30)
 GLND <- c(TRUE,FALSE,TRUE,FALSE,TRUE,rep(c(rep(FALSE,4),TRUE),5))
-plot(OUT$v,groups=GRPS,xlab="residual time",ylab="expected revenue",
+plot(OUT,witch="e",groups=GRPS,xlab="residual time",ylab="expected revenue",
      gloss=TRUE,glind=GLND)
 GRPS <- data.frame(group=rep(1:5,each=6),j=rep(1:5,each=6))
 GRPS$q <- with(GRPS,pmax(j,rep(c(1,6,11,16,21,26),5)))
 GLND <- rep(c(TRUE,TRUE,rep(FALSE,3),TRUE),5)
-plot(OUT$x,groups=GRPS,mfrow=c(3,2),gloss=TRUE,glind=GLND)
+plot(OUT,witch="p",groups=GRPS,mfrow=c(3,2),gloss=TRUE,glind=GLND,xlab="price")
 # Pretty messy looking:
 GRPS$group <- 1
 GLND <- unlist(lapply(1:5,function(k){(1:6)==k}))
-plot(OUT$x,groups=GRPS,gloss=TRUE,glind=GLND,cols=GRPS$j)
+plot(OUT,witch="p",groups=GRPS,gloss=TRUE,glind=GLND,cols=GRPS$j,xlab="price")
 }
 }
 \keyword{ hplot }

@@ -154,11 +154,17 @@ A list with components
 }
 }
 \references{
-Baneree, P. K. and Turner, T. R.
+P. K. Banerjee, and T. R. Turner (2012).
 A flexible model for the pricing of perishable assets.
-Omega, vol. 40, number 5, 2012, pages 533 -- 540,
+\emph{Omega} \bold{40}:5, 533--540,
 doi: 10.1016/j.omega.2011.10.001.
+
+Rolf Turner, Pradeep Banerjee and Rayomand Shahlori (2014).  Optimal
+Asset Pricing.  \emph{Journal of Statistical Software} \bold{58}:11, 1--25.
+URL http://www.jstatsoft.org/v58/i11/.
+Baneree, P. K. and Turner, T. R.
 }
+
 \author{Rolf Turner
   \email{r.turner@auckland.ac.nz}
   \url{http://www.stat.auckland.ac.nz/~rolf}

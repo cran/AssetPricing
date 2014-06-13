@@ -1,4 +1,19 @@
+Version 1.0-0
+
+* Added the CITATION file provided by the Journal of Statistical
+  Software.
+
+* Added reference to the Turner, Banerjee and Shahlori paper in
+  the help files.
+
+Version 0.1-4
+
+* Fixed errors in the documentation of plot.AssetPricing.
+  (07/03/2014)
+
 Version 0.1-3
+
+* Submitted to CRAN 05/March/2014.
 
 * Fixed some glitches with respect to the assignment of
   "gpr" (group size probabilities) in the environments of scrF(),
