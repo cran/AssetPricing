@@ -1,6 +1,6 @@
-fce4c74af9cbc338d307c2e97716dd5c *Changelog
-1f0b1065a28c7c3fa21aff5937d2a279 *DESCRIPTION
-5e5ec2e90217d8d87f00a9009575f251 *NAMESPACE
+b9e8f3334b481d7c2615a96a29176654 *Changelog
+8c43c3d5385599ed9b8917fa24a39544 *DESCRIPTION
+95fe3abb7820942afe9b78223a91a31f *NAMESPACE
 a6603eeac77b3c44cfb5384448d4d9a0 *R/First.R
 85a4554072e5d81cfa1492373e564528 *R/RCS/First.R,v
 757112c75d38f288968be988ac054be2 *R/RCS/Pfun.R,v
@@ -44,6 +44,8 @@ bc8c541206fca4ebe09cb65c9cf4b768 *R/i2qj.R
 03c9f8861c0941c65c5f84f1b174e9b3 *R/initx.R
 92ed3fc6efbf89c66fed3660ada60ccc *R/newt.R
 9151b6b9bb597d37c60d91ad3876f353 *R/plot.AssetPricing.R
+a159502ee7d34b54a68284741b655a23 *R/plot.R
+ef9ea353de465c1f09a9f5e5c06dedfa *R/plot.default.R
 e0615fba4be6695c24e9bc0ba5ba2886 *R/plot.flap.R
 863938ffab0010642f644e97a981f8d9 *R/plot.stepfun.R
 d1083bfdcd78d7d8012632a34e02cf75 *R/progRep.R
@@ -62,8 +64,8 @@ eb72dc400e00dab666fa1bbb2cf97507 *R/turnPts.R
 489cc77594a637fcdc28a4670b212804 *inst/coa
 364d50d5ff1bf3ef7f8aacf6c9dd10c5 *inst/optimNote.tex
 b9cd3aafc999feec60d97044e28c00da *inst/plot.flap.R.old
-9c247beff375c2550c2074fbff1e22c5 *man/AssetPricing-internal.Rd
+3f50c5d97a3af09fbe0f4c984d774e3b *man/AssetPricing-internal.Rd
 c0c9bace2194cd903df0ea67788f0639 *man/buildS.Rd
-985c224094423c521907dd2297d1db40 *man/plot.AssetPricing.Rd
-34b367752fe2912eeacae3a89663439b *man/vsolve.Rd
+99ee688b2a2f652eff8a2bf492f5c16d *man/plot.AssetPricing.Rd
+dbefb5db0846b16cbe25d5a0718f4292 *man/vsolve.Rd
 cbcecec7473a9c3d53f8e6d3789a2b43 *man/xsolve.Rd

@@ -65,5 +65,9 @@ xsolve.pwl(S,lambda,gprob,tmax,qmax,nout,type,
 % function of the same name from the package "stats".  It is modified
 % so that the "xlim" argument behaves properly (like unto the way
 % that argument behaves for plot.function().
+% On the advice of Kurt Hornik (31/03/2018) I created a new *generic*
+% plot function, with default method equal to graphics::plot(), so
+% as to properly accommodate the modified plot.stepfun() method.
+%
 }
 \keyword{internal}

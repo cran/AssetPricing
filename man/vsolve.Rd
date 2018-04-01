@@ -170,7 +170,7 @@ Baneree, P. K. and Turner, T. R.
   \url{http://www.stat.auckland.ac.nz/~rolf}
 }
 \seealso{
-\code{\link{xsolve}()}, \code{\link{plot.flap}()}
+\code{\link{xsolve}()}, \code{\link{plot.AssetPricing}()}
 }
 \examples{
 #

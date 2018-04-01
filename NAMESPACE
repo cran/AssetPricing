@@ -4,5 +4,18 @@ export(a2sf, getPossPrices, plot.flap, turnPts, buildS, getS, vupdate, cev,
 i2qj, putAway, xsolve.cont, initx, qj2i, xsolve.disc, findSolType,
 xsolve.pwl, plot.AssetPricing, scrF, scrG, vsolve, xsolve, progRep)
 
+# Register S3 methods.
+S3method(plot,AssetPricing)
+S3method(plot,flap)
+S3method(plot,stepfun)
+
 # Import polynom and deSolve:
 import(polynom, deSolve)
+
+# Import particular functions from other packages.
+importFrom("grDevices", "dev.interactive")
+importFrom("graphics", "axis", "mtext", "par", "plot", "points",
+           "segments", "text")
+importFrom("stats", "approxfun", "deriv", "deriv3", "ecdf", "is.stepfun",
+           "knots", "median", "optimize", "splinefun", "stepfun")
+

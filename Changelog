@@ -1,12 +1,24 @@
+Version 1.0-1
+
+* Fixed glitch in help file for vsolve; referred to plot.flap()
+  rather than to plot.AssetPricing().
+
+* Registered S3 methods plot.AssetPricing(), plot.flap(),
+  and plot.stepfun() in NAMESPACE.
+
 Version 1.0-0
 
+* Submitted to CRAN 13/June/2014.
+
 * Added the CITATION file provided by the Journal of Statistical
-  Software.
+  Software. (13/06/2014)
 
 * Added reference to the Turner, Banerjee and Shahlori paper in
-  the help files.
+  the help files. (13/06/2014)
 
 Version 0.1-4
+
+* Never submitted to CRAN.
 
 * Fixed errors in the documentation of plot.AssetPricing.
   (07/03/2014)

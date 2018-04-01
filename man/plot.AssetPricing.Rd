@@ -205,7 +205,11 @@
   \code{plot.stepfun()} to treat the \code{xlim} argument in a manner
   similar to the way in which it is treated by \code{plot.function}.
   Note that \code{plot.stepfun()} is \emph{not} exported from
-  this package.
+  this package.  On the advice of Kurt Hornik (31/03/2018) I
+  created a new generic \code{plot()} function in this package
+  (i.e. \code{AssetPricing}) with default method equal to
+  \code{graphics::plot()}, so as to properly accommodate the
+  existence of this modified \code{plot.stepfun()} method.
 }
 \value{
 None.  This function exists only for its side effect, i.e.
